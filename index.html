@@ -8,73 +8,147 @@
     body{font-family:system-ui;margin:0;background:#f7f7fb;color:#111}
     header{padding:18px 20px;background:white;border-bottom:1px solid #e5e7eb}
     h1{margin:0;font-size:22px}
-    main{max-width:980px;margin:18px auto;padding:0 16px;display:grid;gap:14px}
+    main{max-width:1060px;margin:18px auto;padding:0 16px;display:grid;gap:14px}
     .card{background:white;border:1px solid #e5e7eb;border-radius:14px;padding:14px}
-    .row{display:grid;grid-template-columns:1fr 320px;gap:14px}
-    @media (max-width:900px){.row{grid-template-columns:1fr}}
-    .toolbar button{margin-right:8px;margin-bottom:8px;padding:10px 12px;border-radius:12px;border:1px solid #e5e7eb;background:white;font-weight:700;cursor:pointer}
+    .row{display:grid;grid-template-columns:1fr 360px;gap:14px}
+    @media (max-width:980px){.row{grid-template-columns:1fr}}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px}
+    .toolbar button{
+      padding:10px 12px;border-radius:12px;border:1px solid #e5e7eb;background:white;
+      font-weight:700;cursor:pointer
+    }
     .toolbar button.primary{background:#111;color:white;border-color:#111}
-    canvas{width:100%;height:420px;border:1px solid #e5e7eb;border-radius:14px;background:white;touch-action:none}
-    textarea{width:100%;border:1px solid #e5e7eb;border-radius:12px;padding:10px;font-family:system-ui;resize:none}
-    .emma{white-space:pre-wrap;background:#f9fafb}
+    .toolbar button.danger{background:#fff1f2;border-color:#fecaca;color:#991b1b}
+    .toolbar button.mic{border-color:#c7d2fe}
+    .toolbar button.mic.on{background:#eef2ff;border-color:#818cf8}
+    canvas{width:100%;height:480px;border:1px solid #e5e7eb;border-radius:14px;background:white;touch-action:none}
+    .emmaBox{white-space:pre-wrap;background:#f9fafb}
     small{color:#6b7280}
+    .pill{display:inline-block;padding:4px 8px;border:1px solid #e5e7eb;border-radius:999px;background:white;font-size:12px;color:#374151}
+    .kpi{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   </style>
 </head>
 <body>
   <header>
     <h1>EMMA Kids (MVP)</h1>
-    <small>Disegna, prova, sbaglia insieme a EMMA.</small>
+    <small>Disegna + aggiungi pezzi + EMMA ascolta e parla (se il browser lo supporta).</small>
   </header>
 
   <main>
     <div class="row">
+      <!-- BOARD -->
       <div class="card">
         <div class="toolbar">
           <button class="primary" id="btnDraw">✍️ Disegna</button>
-          <button id="btnClear">🧽 Cancella</button>
+          <button id="btnClear" class="danger">🧽 Cancella</button>
           <button id="btnTry">▶ Prova con EMMA</button>
+
+          <span style="width:10px;"></span>
+
+          <button id="addBlock">+ Blocco</button>
+          <button id="addBall">+ Palla</button>
+          <button id="addArrow">+ Freccia</button>
         </div>
-        <canvas id="c"></canvas>
-        <p><small>Nota: questo è un prototipo minimo. L’AI è simulata (errore controllato) per testare l’esperienza.</small></p>
+
+        <div class="kpi">
+          <span class="pill" id="modePill">Modalità: Disegna</span>
+          <span class="pill" id="piecesPill">Pezzi: 0</span>
+          <span class="pill" id="strokesPill">Tratti: 0</span>
+        </div>
+
+        <div style="margin-top:10px;">
+          <canvas id="c"></canvas>
+        </div>
+
+        <p style="margin-bottom:0;margin-top:10px;">
+          <small>
+            Suggerimento: aggiungi una freccia come “vento” e una torre con blocchi.
+          </small>
+        </p>
       </div>
 
+      <!-- EMMA -->
       <div class="card">
-        <b>Cosa significa per te il disegno?</b>
-        <p style="margin-top:8px;margin-bottom:8px;"><small>Scrivi una frase (tipo: “questa è una torre e il vento la fa cadere”).</small></p>
-        <textarea id="meaning" rows="3" placeholder="Scrivi qui..."></textarea>
+        <div class="toolbar" style="justify-content:space-between;align-items:center">
+          <b>EMMA</b>
+          <button id="btnSpeak" title="Ripeti a voce">🔊 Ripeti</button>
+        </div>
 
-        <div class="card emma" style="margin-top:12px;" id="emmaBox">Ciao! Disegna qualcosa 🙂</div>
+        <div class="toolbar" style="margin-top:10px;">
+          <button id="btnMic" class="mic">🎤 Ascolta</button>
+          <button id="btnMicStop" class="mic" disabled>⏹ Stop</button>
+        </div>
+
+        <p style="margin-top:10px;margin-bottom:8px;">
+          <small>Se il microfono funziona, EMMA “capisce” cosa dici e risponde a voce.</small>
+        </p>
+
+        <div class="card emmaBox" id="emmaBox">Ciao! Disegna qualcosa 🙂</div>
+
+        <p style="margin-top:10px;margin-bottom:0;">
+          <small id="micStatus">Microfono: non avviato.</small>
+        </p>
       </div>
     </div>
   </main>
 
   <script>
+    // ----------------------------
+    // CANVAS setup
+    // ----------------------------
     const canvas = document.getElementById("c");
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.floor(rect.width * dpr);
+      canvas.width  = Math.floor(rect.width * dpr);
       canvas.height = Math.floor(rect.height * dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
       redraw();
     }
     window.addEventListener("resize", resize);
 
-    let strokes = [];
+    // ----------------------------
+    // STATE
+    // ----------------------------
+    let mode = "draw"; // draw | move
+    let strokes = [];  // array of stroke: [{x,y},...]
     let drawing = false;
+
+    let pieces = []; // {id,type,x,y,w,h,r,dx,dy,dragging}
+    let draggingPiece = null;
+
     let tries = 0;
+    let lastEmmaText = "Ciao! Disegna qualcosa 🙂";
+    let childUtterance = ""; // what the child said (transcript)
 
-    function redraw() {
-      const w = canvas.clientWidth, h = canvas.clientHeight;
-      ctx.clearRect(0,0,w,h);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0,0,w,h);
+    // ----------------------------
+    // UI helpers
+    // ----------------------------
+    const modePill = document.getElementById("modePill");
+    const piecesPill = document.getElementById("piecesPill");
+    const strokesPill = document.getElementById("strokesPill");
+    const emmaBox = document.getElementById("emmaBox");
 
+    function updatePills(){
+      modePill.textContent = "Modalità: " + (mode === "draw" ? "Disegna" : "Sposta");
+      piecesPill.textContent = "Pezzi: " + pieces.length;
+      strokesPill.textContent = "Tratti: " + strokes.length;
+    }
+
+    function setMode(next){
+      mode = next;
+      updatePills();
+      redraw();
+    }
+
+    // ----------------------------
+    // DRAW
+    // ----------------------------
+    function drawStrokes() {
       ctx.lineCap="round"; ctx.lineJoin="round";
       ctx.lineWidth=6; ctx.strokeStyle="#111827";
-
       for (const s of strokes) {
         if (s.length < 2) continue;
         ctx.beginPath();
@@ -84,58 +158,338 @@
       }
     }
 
+    function drawPieces() {
+      for (const p of pieces) {
+        ctx.save();
+        if (p.type === "block") {
+          ctx.fillStyle = "#111827";
+          ctx.globalAlpha = 0.85;
+          roundRect(ctx, p.x, p.y, p.w, p.h, 14);
+          ctx.fill();
+        } else if (p.type === "ball") {
+          ctx.fillStyle = "#111827";
+          ctx.globalAlpha = 0.85;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.type === "arrow") {
+          ctx.globalAlpha = 0.95;
+          ctx.strokeStyle = "#ef4444";
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x + 120, p.y);
+          ctx.stroke();
+          ctx.fillStyle = "#ef4444";
+          ctx.beginPath();
+          ctx.moveTo(p.x + 120, p.y);
+          ctx.lineTo(p.x + 98, p.y - 12);
+          ctx.lineTo(p.x + 98, p.y + 12);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    function redraw() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0,0,w,h);
+
+      // hint text
+      ctx.save();
+      ctx.fillStyle = "rgba(17,24,39,0.35)";
+      ctx.font = "14px system-ui";
+      ctx.fillText(mode === "draw" ? "Disegna sul foglio" : "Trascina i pezzi", 14, 24);
+      ctx.restore();
+
+      drawStrokes();
+      drawPieces();
+      updatePills();
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    // ----------------------------
+    // HIT TEST (pieces)
+    // ----------------------------
+    function hitTest(x, y) {
+      for (let i = pieces.length - 1; i >= 0; i--) {
+        const p = pieces[i];
+        if (p.type === "block") {
+          if (x >= p.x && x <= p.x + p.w && y >= p.y && y <= p.y + p.h) return p;
+        } else if (p.type === "ball") {
+          const dx = x - p.x, dy = y - p.y;
+          if (Math.sqrt(dx*dx + dy*dy) <= p.r) return p;
+        } else if (p.type === "arrow") {
+          if (x >= p.x && x <= p.x + 120 && y >= p.y - 18 && y <= p.y + 18) return p;
+        }
+      }
+      return null;
+    }
+
+    // ----------------------------
+    // POINTER EVENTS
+    // ----------------------------
     function pos(e){
       const r = canvas.getBoundingClientRect();
-      const x = (e.clientX ?? e.touches[0].clientX) - r.left;
-      const y = (e.clientY ?? e.touches[0].clientY) - r.top;
+      const x = (e.clientX ?? e.touches?.[0]?.clientX) - r.left;
+      const y = (e.clientY ?? e.touches?.[0]?.clientY) - r.top;
       return {x,y};
     }
 
     function down(e){
+      const p = pos(e);
+
+      // drag piece if touched
+      const hit = hitTest(p.x, p.y);
+      if (hit) {
+        draggingPiece = hit;
+        hit.dragging = true;
+        hit.dx = p.x - hit.x;
+        hit.dy = p.y - hit.y;
+        setMode("move");
+        redraw();
+        return;
+      }
+
+      // draw
+      setMode("draw");
       drawing = true;
-      strokes.push([pos(e)]);
+      strokes.push([p]);
       redraw();
     }
+
     function move(e){
+      const p = pos(e);
+
+      if (draggingPiece && draggingPiece.dragging) {
+        draggingPiece.x = p.x - draggingPiece.dx;
+        draggingPiece.y = p.y - draggingPiece.dy;
+        redraw();
+        return;
+      }
+
       if(!drawing) return;
-      strokes[strokes.length-1].push(pos(e));
+      strokes[strokes.length-1].push(p);
       redraw();
     }
-    function up(){ drawing=false; }
+
+    function up(){
+      drawing = false;
+      if (draggingPiece) draggingPiece.dragging = false;
+      draggingPiece = null;
+    }
 
     canvas.addEventListener("pointerdown", down);
     canvas.addEventListener("pointermove", move);
     canvas.addEventListener("pointerup", up);
     canvas.addEventListener("pointercancel", up);
 
+    // ----------------------------
+    // BUTTONS
+    // ----------------------------
+    document.getElementById("btnDraw").onclick = () => setMode("draw");
+
     document.getElementById("btnClear").onclick = () => {
-      strokes = []; tries = 0;
-      document.getElementById("emmaBox").textContent = "Ok, ripartiamo 🙂";
+      strokes = [];
+      pieces = [];
+      tries = 0;
+      childUtterance = "";
+      setEmma("Ok, ripartiamo 🙂 Disegna o aggiungi un pezzo.");
       redraw();
     };
 
-    document.getElementById("btnTry").onclick = () => {
-      tries++;
-      const meaning = document.getElementById("meaning").value.trim();
-      const mirror = meaning ? `Tu mi stai dicendo: “${meaning}”. Ok, proviamo insieme.` 
-                             : "Cosa rappresenta per te? Scrivimi una frase e riproviamo.";
-
-      if (strokes.length === 0) {
-        document.getElementById("emmaBox").textContent = "Prima disegna qualcosa 🙂";
-        return;
-      }
-
-      if (tries === 1) {
-        document.getElementById("emmaBox").textContent =
-          `${mirror}\n\nIo penso che andrà tutto bene e resterà stabile… (potrei sbagliare). Ora cambia una cosa e premi di nuovo “Prova”.`;
-        return;
-      }
-
-      document.getElementById("emmaBox").textContent =
-        `${mirror}\n\nProviamo a cambiare una cosa sola: base più larga? freccia diversa? e vediamo l’effetto.`;
+    document.getElementById("addBlock").onclick = () => {
+      pieces.push({ id: Date.now()+"b", type:"block", x: 110, y: 120, w: 150, h: 95 });
+      setEmma("Ho aggiunto un blocco. Lo puoi trascinare!");
+      redraw();
+    };
+    document.getElementById("addBall").onclick = () => {
+      pieces.push({ id: Date.now()+"o", type:"ball", x: 220, y: 260, r: 42 });
+      setEmma("Ho aggiunto una palla. Proviamo a farla rotolare?");
+      redraw();
+    };
+    document.getElementById("addArrow").onclick = () => {
+      pieces.push({ id: Date.now()+"a", type:"arrow", x: 170, y: 90 });
+      setEmma("Ho aggiunto una freccia: può essere vento o spinta.");
+      redraw();
     };
 
+    // ----------------------------
+    // EMMA: speak + listen
+    // ----------------------------
+    const micBtn = document.getElementById("btnMic");
+    const micStopBtn = document.getElementById("btnMicStop");
+    const micStatus = document.getElementById("micStatus");
+    const speakBtn = document.getElementById("btnSpeak");
+
+    function setEmma(text, speak=true){
+      lastEmmaText = text;
+      emmaBox.textContent = text;
+      if (speak) emmaSpeak(text);
+    }
+
+    function emmaSpeak(text){
+      try {
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "it-IT";
+        u.rate = 1.0;
+        u.pitch = 1.05;
+        window.speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+
+    speakBtn.onclick = () => emmaSpeak(lastEmmaText);
+
+    // SpeechRecognition (varia per browser)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null;
+    if (SpeechRecognition) {
+      rec = new SpeechRecognition();
+      rec.lang = "it-IT";
+      rec.interimResults = true;
+      rec.continuous = false;
+
+      rec.onstart = () => {
+        micStatus.textContent = "Microfono: sto ascoltando…";
+        micBtn.classList.add("on");
+        micStopBtn.disabled = false;
+        micBtn.disabled = true;
+      };
+
+      rec.onend = () => {
+        micStatus.textContent = "Microfono: fermo.";
+        micBtn.classList.remove("on");
+        micStopBtn.disabled = true;
+        micBtn.disabled = false;
+      };
+
+      rec.onerror = (e) => {
+        micStatus.textContent = "Microfono: errore (" + (e.error || "unknown") + ").";
+      };
+
+      rec.onresult = (event) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        childUtterance = transcript.trim();
+        // feedback immediato non giudicante
+        if (childUtterance.length > 0) {
+          emmaBox.textContent = "Ho capito: “" + childUtterance + "”.";
+        }
+      };
+
+      micBtn.onclick = () => {
+        setEmma("Ok, dimmi cosa stai disegnando 🙂", true);
+        try { rec.start(); } catch (e) {}
+      };
+      micStopBtn.onclick = () => {
+        try { rec.stop(); } catch (e) {}
+      };
+    } else {
+      micBtn.disabled = true;
+      micStopBtn.disabled = true;
+      micStatus.textContent = "Microfono: non supportato in questo browser. Prova Chrome/Edge.";
+    }
+
+    // ----------------------------
+    // EMMA: "Try" logic (errore controllato)
+    // ----------------------------
+    document.getElementById("btnTry").onclick = async () => {
+      tries++;
+
+      if (strokes.length === 0 && pieces.length === 0) {
+        setEmma("Prima disegna o aggiungi un pezzo 🙂");
+        return;
+      }
+
+      const blocks = pieces.filter(p => p.type === "block").length;
+      const balls  = pieces.filter(p => p.type === "ball").length;
+      const arrows = pieces.filter(p => p.type === "arrow").length;
+
+      const mirror = childUtterance
+        ? `Tu mi hai detto: “${childUtterance}”.`
+        : "Non mi hai parlato: va bene lo stesso.";
+
+      // 1° tentativo: EMMA sbaglia apposta (gentilmente)
+      if (tries === 1) {
+        setEmma(`${mirror}\nIo penso che andrà tutto bene… proviamo! (potrei sbagliare)`);
+        await demoOverlay("stand");
+        setEmma("Oops 😅 non era così. Cambiamo una cosa sola e riproviamo?");
+        return;
+      }
+
+      // dal 2°: suggerimento più sensato (semplice)
+      let tip = "Cambiamo una cosa sola e vediamo l’effetto.";
+      if (blocks >= 2 && arrows > 0) tip = "Vedo blocchi e vento: forse cade. Proviamo una base più larga?";
+      if (balls > 0 && arrows > 0) tip = "Vedo una palla e una spinta: forse rotola. Proviamo a cambiare la freccia.";
+      if (arrows === 0 && blocks > 0) tip = "Hai costruito qualcosa! Vuoi aggiungere una freccia (vento) per vedere cosa succede?";
+      setEmma(`${mirror}\n${tip}`);
+      await demoOverlay(arrows > 0 ? "fall" : "stand");
+    };
+
+    // Overlay "simulazione" (solo feedback visivo, non fisica reale)
+    function demoOverlay(mode){
+      return new Promise((resolve) => {
+        let frame = 0;
+        function tick(){
+          redraw();
+
+          ctx.save();
+          ctx.globalAlpha = 0.9;
+          ctx.fillStyle = "rgba(255,255,255,0.75)";
+          ctx.fillRect(12, 12, 260, 44);
+          ctx.fillStyle = "#111827";
+          ctx.font = "16px system-ui";
+          ctx.fillText("Simulazione…", 22, 40);
+          ctx.restore();
+
+          ctx.save();
+          const shake = mode === "fall" ? Math.sin(frame/3)*4 : Math.sin(frame/7)*1;
+          ctx.translate(shake, 0);
+
+          ctx.strokeStyle = mode === "fall" ? "#ef4444" : "#10b981";
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(520, 70);
+          ctx.lineTo(640, 70);
+          ctx.stroke();
+          ctx.fillStyle = mode === "fall" ? "#ef4444" : "#10b981";
+          ctx.beginPath();
+          ctx.moveTo(640, 70);
+          ctx.lineTo(615, 55);
+          ctx.lineTo(615, 85);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+
+          frame++;
+          if (frame < 40) requestAnimationFrame(tick);
+          else resolve();
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    // Start
+    setEmma("Ciao! Disegna qualcosa 🙂", false);
     resize();
+    updatePills();
   </script>
 </body>
 </html>
