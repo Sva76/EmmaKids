@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EMMA Kids</title>
+  <style>
+    body{font-family:system-ui;margin:0;background:#f7f7fb;color:#111}
+    header{padding:18px 20px;background:white;border-bottom:1px solid #e5e7eb}
+    h1{margin:0;font-size:22px}
+    main{max-width:980px;margin:18px auto;padding:0 16px;display:grid;gap:14px}
+    .card{background:white;border:1px solid #e5e7eb;border-radius:14px;padding:14px}
+    .row{display:grid;grid-template-columns:1fr 320px;gap:14px}
+    @media (max-width:900px){.row{grid-template-columns:1fr}}
+    .toolbar button{margin-right:8px;margin-bottom:8px;padding:10px 12px;border-radius:12px;border:1px solid #e5e7eb;background:white;font-weight:700;cursor:pointer}
+    .toolbar button.primary{background:#111;color:white;border-color:#111}
+    canvas{width:100%;height:420px;border:1px solid #e5e7eb;border-radius:14px;background:white;touch-action:none}
+    textarea{width:100%;border:1px solid #e5e7eb;border-radius:12px;padding:10px;font-family:system-ui;resize:none}
+    .emma{white-space:pre-wrap;background:#f9fafb}
+    small{color:#6b7280}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>EMMA Kids (MVP)</h1>
+    <small>Disegna, prova, sbaglia insieme a EMMA.</small>
+  </header>
+
+  <main>
+    <div class="row">
+      <div class="card">
+        <div class="toolbar">
+          <button class="primary" id="btnDraw">✍️ Disegna</button>
+          <button id="btnClear">🧽 Cancella</button>
+          <button id="btnTry">▶ Prova con EMMA</button>
+        </div>
+        <canvas id="c"></canvas>
+        <p><small>Nota: questo è un prototipo minimo. L’AI è simulata (errore controllato) per testare l’esperienza.</small></p>
+      </div>
+
+      <div class="card">
+        <b>Cosa significa per te il disegno?</b>
+        <p style="margin-top:8px;margin-bottom:8px;"><small>Scrivi una frase (tipo: “questa è una torre e il vento la fa cadere”).</small></p>
+        <textarea id="meaning" rows="3" placeholder="Scrivi qui..."></textarea>
+
+        <div class="card emma" style="margin-top:12px;" id="emmaBox">Ciao! Disegna qualcosa 🙂</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("c");
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      redraw();
+    }
+    window.addEventListener("resize", resize);
+
+    let strokes = [];
+    let drawing = false;
+    let tries = 0;
+
+    function redraw() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0,0,w,h);
+
+      ctx.lineCap="round"; ctx.lineJoin="round";
+      ctx.lineWidth=6; ctx.strokeStyle="#111827";
+
+      for (const s of strokes) {
+        if (s.length < 2) continue;
+        ctx.beginPath();
+        ctx.moveTo(s[0].x, s[0].y);
+        for (let i=1;i<s.length;i++) ctx.lineTo(s[i].x, s[i].y);
+        ctx.stroke();
+      }
+    }
+
+    function pos(e){
+      const r = canvas.getBoundingClientRect();
+      const x = (e.clientX ?? e.touches[0].clientX) - r.left;
+      const y = (e.clientY ?? e.touches[0].clientY) - r.top;
+      return {x,y};
+    }
+
+    function down(e){
+      drawing = true;
+      strokes.push([pos(e)]);
+      redraw();
+    }
+    function move(e){
+      if(!drawing) return;
+      strokes[strokes.length-1].push(pos(e));
+      redraw();
+    }
+    function up(){ drawing=false; }
+
+    canvas.addEventListener("pointerdown", down);
+    canvas.addEventListener("pointermove", move);
+    canvas.addEventListener("pointerup", up);
+    canvas.addEventListener("pointercancel", up);
+
+    document.getElementById("btnClear").onclick = () => {
+      strokes = []; tries = 0;
+      document.getElementById("emmaBox").textContent = "Ok, ripartiamo 🙂";
+      redraw();
+    };
+
+    document.getElementById("btnTry").onclick = () => {
+      tries++;
+      const meaning = document.getElementById("meaning").value.trim();
+      const mirror = meaning ? `Tu mi stai dicendo: “${meaning}”. Ok, proviamo insieme.` 
+                             : "Cosa rappresenta per te? Scrivimi una frase e riproviamo.";
+
+      if (strokes.length === 0) {
+        document.getElementById("emmaBox").textContent = "Prima disegna qualcosa 🙂";
+        return;
+      }
+
+      if (tries === 1) {
+        document.getElementById("emmaBox").textContent =
+          `${mirror}\n\nIo penso che andrà tutto bene e resterà stabile… (potrei sbagliare). Ora cambia una cosa e premi di nuovo “Prova”.`;
+        return;
+      }
+
+      document.getElementById("emmaBox").textContent =
+        `${mirror}\n\nProviamo a cambiare una cosa sola: base più larga? freccia diversa? e vediamo l’effetto.`;
+    };
+
+    resize();
+  </script>
+</body>
+</html>
