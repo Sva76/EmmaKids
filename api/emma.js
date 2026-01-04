@@ -1,7 +1,28 @@
 export default async function handler(req, res) {
   try {
+    // HEALTH CHECK: useful from browser
+    if (req.method === "GET") {
+      return res.status(200).json({
+        ok: true,
+        route: "/api/emma",
+        methods: ["POST"],
+        hasOpenAIKey: Boolean(process.env.OPENAI_API_KEY),
+        textModel: process.env.EMMA_TEXT_MODEL || "gpt-4o-mini",
+        ttsModel: process.env.EMMA_TTS_MODEL || "gpt-4o-mini-tts",
+        voice: process.env.EMMA_VOICE || "alloy"
+      });
+    }
+
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({
+        error: "Missing OPENAI_API_KEY",
+        fix: "Set OPENAI_API_KEY in Vercel → Project → Settings → Environment Variables (Production) and redeploy."
+      });
     }
 
     const {
@@ -13,51 +34,41 @@ export default async function handler(req, res) {
       last_events = []
     } = req.body || {};
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
-
     const TEXT_MODEL = process.env.EMMA_TEXT_MODEL || "gpt-4o-mini";
     const TTS_MODEL  = process.env.EMMA_TTS_MODEL  || "gpt-4o-mini-tts";
     const VOICE      = process.env.EMMA_VOICE      || "alloy";
 
-    // --- Safety / UX rules
-    // 1) No emojis in output (and we strip anyway)
-    // 2) Never repeat child mispronunciations: don't quote transcript, just use it internally.
-    // 3) Short, warm, playful. Ask 1 question max.
-    // 4) Age-adaptive language.
-
-    const locale = lang;
     const ageStyle =
-      age_band === "3-5" ? "very short sentences, simple words, 1 step at a time"
+      age_band === "3-5" ? "very short sentences, simple words, one step at a time"
     : age_band === "6-8" ? "short sentences, simple causal questions"
-    : "slightly richer language, still child-friendly, encourage hypothesis";
+    : "child-friendly language, encourage hypothesis gently";
 
     const sys = `
 You are EMMA, a gentle cognitive companion for children.
-Language locale: ${locale}.
+Language locale: ${lang}.
 Style: ${ageStyle}.
 Rules:
 - Do NOT use emojis or emoticons.
 - Do NOT quote or imitate the child's mispronounced words. Never repeat the transcript.
-- Be warm, curious, and encouraging. No judgement.
+- Be warm, curious, encouraging. No judgement.
 - Ask at most ONE question.
-- Focus on causal thinking: "change one thing, see what happens".
+- Focus on causal thinking: change one thing, see what happens.
 - Keep it under 60 words.
-`;
+`.trim();
 
     const user = {
       child_profile: { child_id, age_band, lang },
       drawing_summary,
-      // transcript is private signal; model must not repeat it
+      // private signal; must not be repeated
       child_spoken_signal: transcript,
-      recent_events: last_events.slice(-10)
+      recent_events: Array.isArray(last_events) ? last_events.slice(-10) : []
     };
 
-    // 1) Generate EMMA text
+    // 1) Generate text
     const textResp = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -72,24 +83,25 @@ Rules:
 
     if (!textResp.ok) {
       const errText = await textResp.text();
-      return res.status(500).json({ error: "Text generation failed", details: errText });
+      return res.status(500).json({
+        error: "Text generation failed",
+        details: errText.slice(0, 2000)
+      });
     }
 
     const textJson = await textResp.json();
-    const rawText =
-      textJson.output_text ||
-      (Array.isArray(textJson.output) ? JSON.stringify(textJson.output) : "");
+    const rawText = (textJson && textJson.output_text) ? textJson.output_text : "";
+    const cleanText = stripEmojis(String(rawText || "").trim()).replace(/\s+/g, " ").trim();
 
-    const cleanText = stripEmojis(String(rawText || "").trim())
-      .replace(/\s+/g, " ")
-      .trim();
+    if (!cleanText) {
+      return res.status(500).json({ error: "Empty AI text output" });
+    }
 
-    // 2) TTS neural audio
-    // OpenAI Audio API: /v1/audio/speech
+    // 2) TTS
     const ttsResp = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -102,34 +114,33 @@ Rules:
 
     if (!ttsResp.ok) {
       const errText = await ttsResp.text();
-      return res.status(500).json({ error: "TTS failed", details: errText, text: cleanText });
+      return res.status(500).json({
+        error: "TTS failed",
+        details: errText.slice(0, 2000),
+        text: cleanText
+      });
     }
 
-    const audioArrayBuffer = await ttsResp.arrayBuffer();
-    const audioBase64 = Buffer.from(audioArrayBuffer).toString("base64");
+    const audioBuf = await ttsResp.arrayBuffer();
+    const audioBase64 = Buffer.from(audioBuf).toString("base64");
 
     return res.status(200).json({
       text: cleanText,
-      audio: {
-        mime: "audio/mpeg",
-        base64: audioBase64
-      }
+      audio: { mime: "audio/mpeg", base64: audioBase64 }
     });
 
   } catch (e) {
-    return res.status(500).json({ error: "Server error", details: String(e?.message || e) });
+    return res.status(500).json({
+      error: "Server error",
+      details: String(e?.message || e)
+    });
   }
 }
 
-// Removes emojis and most pictographs so TTS won't read them.
 function stripEmojis(s) {
   return s
-    // broad emoji ranges
     .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
     .replace(/[\u{2600}-\u{27BF}]/gu, "")
-    // variation selectors
     .replace(/\uFE0F/gu, "")
-    // extra cleanup
-    .replace(/[<>]/g, "")
     .trim();
 }
