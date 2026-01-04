@@ -72,7 +72,7 @@
     <div class="topPills">
       <span class="pill" id="childPill">Bimbo: —</span>
       <span class="pill" id="langPill">Lingua: it-IT</span>
-      <button class="small" id="btnChooseChild">👤 Cambia bimbo</button>
+      <button class="small" id="btnChooseChild">👤 Scheda bimbo</button>
     </div>
   </header>
 
@@ -124,7 +124,7 @@
           <small>Nota: EMMA non ripete mai le parole del bambino. Le usa solo “dietro le quinte”.</small>
         </p>
 
-        <div class="card emmaBox" id="emmaBox">Ciao! Scegli un bimbo e disegna qualcosa 🙂</div>
+        <div class="card emmaBox" id="emmaBox">Ciao! Premi “Scheda bimbo” 🙂</div>
 
         <p style="margin-top:10px;margin-bottom:0;">
           <small id="micStatus">Microfono: non avviato.</small>
@@ -153,14 +153,14 @@
   <div class="modalBackdrop" id="childModalBackdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="childModalTitle">
       <div class="modalHeader">
-        <b id="childModalTitle">Scegli il bimbo</b>
+        <b id="childModalTitle">Scheda bimbo</b>
         <button id="btnCloseChildModal" class="small">✖</button>
       </div>
 
       <div class="modalBody">
         <div class="grid2">
           <div class="card" style="padding:12px;">
-            <b>Profilo</b>
+            <b>Nuovo / Aggiorna</b>
             <p class="hint" style="margin-top:6px;">Nome + animale (nessun dato reale). I progressi restano sul dispositivo.</p>
 
             <label class="hint">Nome bimbo</label>
@@ -192,7 +192,7 @@
             </div>
 
             <div class="hint" style="margin-top:10px;">
-              Se qualcosa non va, prova un altro browser (Chrome/Edge) o disattiva “blocca cookie/siti”.
+              Se un browser blocca lo storage, EMMA userà una memoria interna (non crash).
             </div>
           </div>
 
@@ -200,9 +200,6 @@
             <b>Profili sul dispositivo</b>
             <p class="hint" style="margin-top:6px;">Puoi riprendere un bimbo già creato.</p>
             <div id="existingChildren" class="card" style="padding:10px;background:#f9fafb;"></div>
-            <p class="hint" style="margin-top:8px;">
-              Se vuoi “ripartire”, usa “Elimina dati” nella schermata principale.
-            </p>
           </div>
         </div>
       </div>
@@ -289,7 +286,7 @@
         try{
           if (HAS_LS) return localStorage.getItem(key);
           return memStore.get(key) ?? null;
-        } catch(e){
+        } catch{
           return memStore.get(key) ?? null;
         }
       },
@@ -297,8 +294,7 @@
         try{
           if (HAS_LS) localStorage.setItem(key, value);
           else memStore.set(key, value);
-        } catch(e){
-          // fallback to memory
+        } catch{
           memStore.set(key, value);
         }
       },
@@ -306,7 +302,7 @@
         try{
           if (HAS_LS) localStorage.removeItem(key);
           memStore.delete(key);
-        } catch(e){
+        } catch{
           memStore.delete(key);
         }
       }
@@ -390,7 +386,6 @@
       Storage.setItem(LS_ACTIVE, id);
       activeChild = loadChild(id);
       if (!activeChild) {
-        // if storage failed, re-create safely
         activeChild = emptyChild(id);
         saveChild(activeChild);
       }
@@ -416,12 +411,31 @@
     }
 
     // ============================
-    // UI ELEMENTS
+    // LOCALIZATION (THIS WAS MISSING BEFORE)
+    // ============================
+    function localized(key){
+      const lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
+      const L = lang.startsWith("it") ? "it"
+              : lang.startsWith("en") ? "en"
+              : lang.startsWith("es") ? "es"
+              : lang.startsWith("fr") ? "fr"
+              : lang.startsWith("de") ? "de"
+              : "it";
+      const dict = {
+        it: { hi_ready:"Ciao! Disegna qualcosa 🙂 Poi premi “Prova con EMMA”.", export_done:"Fatto! Ho esportato un file JSON su questo dispositivo.", speak_hint:"Ok, dimmi cosa stai costruendo 🙂", heard_ok:"Ti ho ascoltato. Continuiamo 🙂", start_first:"Prima disegna o aggiungi un pezzo 🙂", reset_ok:"Ok, ripartiamo 🙂 Disegna o aggiungi un pezzo." },
+        en: { hi_ready:"Hi! Draw something 🙂 Then press “Try with EMMA”.", export_done:"Done! I saved a JSON file on this device.", speak_hint:"Okay, tell me what you're building 🙂", heard_ok:"I listened. Let's continue 🙂", start_first:"First draw something or add a piece 🙂", reset_ok:"Alright, let's restart 🙂 Draw or add a piece." },
+        es: { hi_ready:"¡Hola! Dibuja algo 🙂 Luego pulsa “Probar con EMMA”.", export_done:"¡Hecho! Guardé un archivo JSON en este dispositivo.", speak_hint:"Vale, dime qué estás construyendo 🙂", heard_ok:"Te escuché. Sigamos 🙂", start_first:"Primero dibuja algo o añade una pieza 🙂", reset_ok:"Vale, empezamos de nuevo 🙂 Dibuja o añade una pieza." },
+        fr: { hi_ready:"Salut ! Dessine quelque chose 🙂 Puis clique “Essayer avec EMMA”.", export_done:"Terminé ! J’ai enregistré un fichier JSON sur cet appareil.", speak_hint:"Ok, dis-moi ce que tu construis 🙂", heard_ok:"Je t’ai écouté. On continue 🙂", start_first:"D’abord, dessine ou ajoute une pièce 🙂", reset_ok:"D’accord, on recommence 🙂 Dessine ou ajoute une pièce." },
+        de: { hi_ready:"Hallo! Zeichne etwas 🙂 Dann klicke “Mit EMMA testen”.", export_done:"Fertig! Ich habe eine JSON-Datei auf diesem Gerät gespeichert.", speak_hint:"Okay, sag mir, was du baust 🙂", heard_ok:"Ich habe zugehört. Weiter so 🙂", start_first:"Zuerst zeichnen oder ein Teil hinzufügen 🙂", reset_ok:"Okay, wir starten neu 🙂 Zeichne oder füge ein Teil hinzu." }
+      };
+      return (dict[L] && dict[L][key]) ? dict[L][key] : dict.it[key] || "";
+    }
+
+    // ============================
+    // HEADER PILLS
     // ============================
     const childPill = document.getElementById("childPill");
     const langPill = document.getElementById("langPill");
-    const emmaBox = document.getElementById("emmaBox");
-
     function refreshHeaderPills(){
       if (!activeChild) {
         childPill.textContent = "Bimbo: —";
@@ -434,7 +448,7 @@
     }
 
     // ============================
-    // MODAL: Choose child
+    // MODAL: CHILD
     // ============================
     const childModalBackdrop = document.getElementById("childModalBackdrop");
     const btnChooseChild = document.getElementById("btnChooseChild");
@@ -447,33 +461,6 @@
     const ageSelect = document.getElementById("ageSelect");
 
     let selectedAnimal = ANIMALS[0];
-
-    function openChildModal(){
-      childModalBackdrop.style.display = "flex";
-      childModalBackdrop.setAttribute("aria-hidden","false");
-      renderAnimals();
-      renderExistingChildren();
-      if (activeChild) {
-        const parts = activeChild.child_id.split(" ");
-        const last = parts[parts.length-1];
-        if (ANIMALS.includes(last)) {
-          selectedAnimal = last;
-          childNameInput.value = parts.slice(0,-1).join(" ");
-        } else {
-          childNameInput.value = activeChild.display_name || "";
-        }
-        langSelect.value = activeChild.lang || "it-IT";
-        ageSelect.value = activeChild.age_band || "3-5";
-      } else {
-        childNameInput.value = "";
-        langSelect.value = "it-IT";
-        ageSelect.value = "3-5";
-      }
-    }
-    function closeChildModal(){
-      childModalBackdrop.style.display = "none";
-      childModalBackdrop.setAttribute("aria-hidden","true");
-    }
 
     function renderAnimals(){
       animalsBox.innerHTML = "";
@@ -523,6 +510,35 @@
       if (last) last.style.borderBottom = "none";
     }
 
+    function openChildModal(){
+      childModalBackdrop.style.display = "flex";
+      childModalBackdrop.setAttribute("aria-hidden","false");
+      renderAnimals();
+      renderExistingChildren();
+
+      if (activeChild) {
+        const parts = activeChild.child_id.split(" ");
+        const last = parts[parts.length-1];
+        if (ANIMALS.includes(last)) {
+          selectedAnimal = last;
+          childNameInput.value = parts.slice(0,-1).join(" ");
+        } else {
+          childNameInput.value = activeChild.display_name || "";
+        }
+        langSelect.value = activeChild.lang || "it-IT";
+        ageSelect.value = activeChild.age_band || "3-5";
+      } else {
+        childNameInput.value = "";
+        langSelect.value = "it-IT";
+        ageSelect.value = "3-5";
+      }
+    }
+
+    function closeChildModal(){
+      childModalBackdrop.style.display = "none";
+      childModalBackdrop.setAttribute("aria-hidden","true");
+    }
+
     btnChooseChild.onclick = openChildModal;
     btnCloseChildModal.onclick = closeChildModal;
     childModalBackdrop.addEventListener("click", (e) => {
@@ -530,125 +546,19 @@
     });
 
     btnCreateChild.onclick = () => {
-      try{
-        const name = (childNameInput.value || "").trim();
-        if (!name) { alert("Inserisci un nome (anche inventato)."); return; }
-        const id = childIdFrom(name, selectedAnimal);
-        let c = loadChild(id);
-        if (!c) c = emptyChild(id);
-        c.lang = langSelect.value;
-        c.age_band = ageSelect.value;
-        saveChild(c);
-        setActiveChild(id);
-        closeChildModal();
-        addEvent("child_selected", { child_id: id, lang: c.lang, age_band: c.age_band });
-        setEmma(localized("hi_ready"), true);
-      } catch(e){
-        showError("Errore creazione bimbo: " + (e?.message || String(e)));
-      }
+      const name = (childNameInput.value || "").trim();
+      if (!name) { alert("Inserisci un nome (anche inventato)."); return; }
+      const id = childIdFrom(name, selectedAnimal);
+      let c = loadChild(id);
+      if (!c) c = emptyChild(id);
+      c.lang = langSelect.value;
+      c.age_band = ageSelect.value;
+      saveChild(c);
+      setActiveChild(id);
+      closeChildModal();
+      addEvent("child_selected", { child_id: id, lang: c.lang, age_band: c.age_band });
+      setEmma(localized("hi_ready"), true);
     };
-
-    // ============================
-    // MODAL: Export consent
-    // ============================
-    const exportModalBackdrop = document.getElementById("exportModalBackdrop");
-    const btnExport = document.getElementById("btnExport");
-    const btnCloseExportModal = document.getElementById("btnCloseExportModal");
-    const chkConsent = document.getElementById("chkConsent");
-    const chkIncludeTranscripts = document.getElementById("chkIncludeTranscripts");
-    const btnDoExport = document.getElementById("btnDoExport");
-
-    function openExportModal(){
-      if (!activeChild) { openChildModal(); return; }
-      chkConsent.checked = false;
-      chkIncludeTranscripts.checked = false;
-      btnDoExport.disabled = true;
-      exportModalBackdrop.style.display = "flex";
-      exportModalBackdrop.setAttribute("aria-hidden","false");
-    }
-    function closeExportModal(){
-      exportModalBackdrop.style.display = "none";
-      exportModalBackdrop.setAttribute("aria-hidden","true");
-    }
-    btnExport.onclick = openExportModal;
-    btnCloseExportModal.onclick = closeExportModal;
-    exportModalBackdrop.addEventListener("click", (e) => {
-      if (e.target === exportModalBackdrop) closeExportModal();
-    });
-
-    chkConsent.onchange = () => { btnDoExport.disabled = !chkConsent.checked; };
-
-    btnDoExport.onclick = () => {
-      try{
-        if (!activeChild) return;
-        const includeTranscripts = chkIncludeTranscripts.checked;
-
-        // deep copy without structuredClone (more compatible)
-        const snapshot = JSON.parse(JSON.stringify(activeChild));
-
-        if (!includeTranscripts) {
-          snapshot.events = (snapshot.events || []).map(ev => {
-            if (ev.type === "mic_transcript") {
-              return { t: ev.t, type: ev.type, payload: { note: "removed" } };
-            }
-            return ev;
-          });
-        }
-
-        const exportObj = {
-          exported_at: nowISO(),
-          app: { name: "EMMA Kids", phase: "Fase 1", storage: HAS_LS ? "localStorage" : "memory-fallback", version: "1.1" },
-          child: snapshot
-        };
-
-        const fnameSafe = (activeChild.child_id || "bimbo").replace(/[^\w\s-]/g,"").trim().replace(/\s+/g,"_");
-        const filename = `EMMAKids_${fnameSafe}_${new Date().toISOString().slice(0,10)}.json`;
-        downloadText(filename, JSON.stringify(exportObj, null, 2));
-        addEvent("export", { includeTranscripts });
-        closeExportModal();
-        setEmma(localized("export_done"), true);
-      } catch(e){
-        showError("Errore export: " + (e?.message || String(e)));
-      }
-    };
-
-    // ============================
-    // WIPE DATA
-    // ============================
-    document.getElementById("btnWipe").onclick = () => {
-      const ok = confirm("Eliminare TUTTI i dati EMMA Kids da questo dispositivo? (Profili, progressi, eventi)");
-      if (!ok) return;
-      clearAllData();
-      childUtterance = "";
-      tries = 0;
-      strokes = [];
-      pieces = [];
-      refreshHeaderPills();
-      redraw();
-      setEmma("Dati eliminati. Ora scegli un bimbo 🙂", true);
-      openChildModal();
-    };
-
-    // ============================
-    // LOCALIZATION
-    // ============================
-    function localized(key){
-      const lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
-      const L = lang.startsWith("it") ? "it"
-              : lang.startsWith("en") ? "en"
-              : lang.startsWith("es") ? "es"
-              : lang.startsWith("fr") ? "fr"
-              : lang.startsWith("de") ? "de"
-              : "it";
-      const dict = {
-        it: { hi_ready:"Ciao! Disegna qualcosa 🙂 Poi premi “Prova con EMMA”.", export_done:"Fatto! Ho esportato un file JSON su questo dispositivo.", speak_hint:"Ok, dimmi cosa stai costruendo 🙂", heard_ok:"Ti ho ascoltato. Continuiamo 🙂", start_first:"Prima disegna o aggiungi un pezzo 🙂", reset_ok:"Ok, ripartiamo 🙂 Disegna o aggiungi un pezzo." },
-        en: { hi_ready:"Hi! Draw something 🙂 Then press “Try with EMMA”.", export_done:"Done! I saved a JSON file on this device.", speak_hint:"Okay, tell me what you're building 🙂", heard_ok:"I listened. Let's continue 🙂", start_first:"First draw something or add a piece 🙂", reset_ok:"Alright, let's restart 🙂 Draw or add a piece." },
-        es: { hi_ready:"¡Hola! Dibuja algo 🙂 Luego pulsa “Probar con EMMA”.", export_done:"¡Hecho! Guardé un archivo JSON en este dispositivo.", speak_hint:"Vale, dime qué estás construyendo 🙂", heard_ok:"Te escuché. Sigamos 🙂", start_first:"Primero dibuja algo o añade una pieza 🙂", reset_ok:"Vale, empezamos de nuevo 🙂 Dibuja o añade una pieza." },
-        fr: { hi_ready:"Salut ! Dessine quelque chose 🙂 Puis clique “Essayer avec EMMA”.", export_done:"Terminé ! J’ai enregistré un fichier JSON sur cet appareil.", speak_hint:"Ok, dis-moi ce que tu construis 🙂", heard_ok:"Je t’ai écouté. On continue 🙂", start_first:"D’abord, dessine ou ajoute une pièce 🙂", reset_ok:"D’accord, on recommence 🙂 Dessine ou ajoute une pièce." },
-        de: { hi_ready:"Hallo! Zeichne etwas 🙂 Dann klicke “Mit EMMA testen”.", export_done:"Fertig! Ich habe eine JSON-Datei auf diesem Gerät gespeichert.", speak_hint:"Okay, sag mir, was du baust 🙂", heard_ok:"Ich habe zugehört. Weiter so 🙂", start_first:"Zuerst zeichnen oder ein Teil hinzufügen 🙂", reset_ok:"Okay, wir starten neu 🙂 Zeichne oder füge ein Teil hinzu." }
-      };
-      return (dict[L] && dict[L][key]) ? dict[L][key] : dict.it[key] || "";
-    }
 
     // ============================
     // CANVAS
@@ -669,34 +579,25 @@
     let mode = "draw";
     let strokes = [];
     let drawing = false;
-
     let pieces = [];
     let draggingPiece = null;
-
     let tries = 0;
-    let lastEmmaText = "Ciao! Scegli un bimbo e disegna qualcosa 🙂";
     let childUtterance = "";
+    let lastEmmaText = "Ciao! Premi “Scheda bimbo” 🙂";
 
     const modePill = document.getElementById("modePill");
     const piecesPill = document.getElementById("piecesPill");
     const strokesPill = document.getElementById("strokesPill");
     const triesPill = document.getElementById("triesPill");
-
     function updatePills(){
       modePill.textContent = "Modalità: " + (mode === "draw" ? "Disegna" : "Sposta");
       piecesPill.textContent = "Pezzi: " + pieces.length;
       strokesPill.textContent = "Tratti: " + strokes.length;
       triesPill.textContent = "Tentativi: " + tries;
     }
-    function setMode(next){
-      mode = next;
-      updatePills();
-      redraw();
-    }
+    function setMode(next){ mode = next; updatePills(); redraw(); }
 
-    // ============================
-    // HAND-DRAWN SHAPES (imperfect but consistent)
-    // ============================
+    // Hand-drawn shapes (imperfect, consistent)
     function hashStr(s){
       let h = 2166136261;
       for (let i=0;i<s.length;i++){
@@ -733,7 +634,6 @@
       ctx.lineTo(pts[3].x, pts[3].y);
       ctx.closePath();
     }
-
     function handCircle(ctx, cx, cy, r, seed){
       const rng = mulberry32(seed);
       const steps = 18;
@@ -748,12 +648,10 @@
       }
       ctx.closePath();
     }
-
     function handArrow(ctx, x, y, len, seed){
       const rng = mulberry32(seed);
       const amp = 3.5;
       const steps = 8;
-
       ctx.beginPath();
       for (let i=0;i<=steps;i++){
         const u = i/steps;
@@ -762,7 +660,6 @@
         if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
       }
       ctx.stroke();
-
       const hx = x + len + jitter(rng, 1.5);
       const hy = y + jitter(rng, 1.5);
       ctx.beginPath();
@@ -773,7 +670,7 @@
       ctx.fill();
     }
 
-    function drawStrokes() {
+    function drawStrokes(){
       ctx.lineCap="round"; ctx.lineJoin="round";
       ctx.lineWidth=6; ctx.strokeStyle="#111827";
       for (const s of strokes) {
@@ -784,8 +681,7 @@
         ctx.stroke();
       }
     }
-
-    function drawPieces() {
+    function drawPieces(){
       for (const p of pieces) {
         ctx.save();
         const seed = hashStr(String(p.id));
@@ -796,7 +692,6 @@
           ctx.lineWidth = 3;
           handRect(ctx, p.x, p.y, p.w, p.h, seed);
           ctx.fill();
-          // a second outline pass for “sketch” feel
           ctx.globalAlpha = 0.65;
           handRect(ctx, p.x+1, p.y+1, p.w-2, p.h-2, seed ^ 0xABC);
           ctx.stroke();
@@ -821,15 +716,15 @@
       }
     }
 
-    function redraw() {
+    function redraw(){
       const w = canvas.clientWidth, h = canvas.clientHeight;
       ctx.clearRect(0,0,w,h);
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle="#fff";
       ctx.fillRect(0,0,w,h);
 
       ctx.save();
-      ctx.fillStyle = "rgba(17,24,39,0.35)";
-      ctx.font = "14px system-ui";
+      ctx.fillStyle="rgba(17,24,39,0.35)";
+      ctx.font="14px system-ui";
       ctx.fillText(mode === "draw" ? "Disegna sul foglio" : "Trascina i pezzi", 14, 24);
       ctx.restore();
 
@@ -838,10 +733,7 @@
       updatePills();
     }
 
-    // ============================
-    // HIT TEST
-    // ============================
-    function hitTest(x, y) {
+    function hitTest(x,y){
       for (let i = pieces.length - 1; i >= 0; i--) {
         const p = pieces[i];
         if (p.type === "block") {
@@ -856,9 +748,6 @@
       return null;
     }
 
-    // ============================
-    // POINTER EVENTS
-    // ============================
     function pos(e){
       const r = canvas.getBoundingClientRect();
       const x = (e.clientX ?? e.touches?.[0]?.clientX) - r.left;
@@ -868,46 +757,40 @@
 
     function down(e){
       const p = pos(e);
-
-      const hit = hitTest(p.x, p.y);
-      if (hit) {
+      const hit = hitTest(p.x,p.y);
+      if (hit){
         draggingPiece = hit;
         hit.dragging = true;
         hit.dx = p.x - hit.x;
         hit.dy = p.y - hit.y;
         setMode("move");
-        addEvent("piece_drag_start", { type: hit.type, x: hit.x, y: hit.y });
+        addEvent("piece_drag_start", {type:hit.type,x:hit.x,y:hit.y});
         redraw();
         return;
       }
-
       setMode("draw");
       drawing = true;
       strokes.push([p]);
-      addEvent("stroke_start", { x: p.x, y: p.y });
+      addEvent("stroke_start", {x:p.x,y:p.y});
       redraw();
     }
-
     function move(e){
       const p = pos(e);
-
-      if (draggingPiece && draggingPiece.dragging) {
+      if (draggingPiece && draggingPiece.dragging){
         draggingPiece.x = p.x - draggingPiece.dx;
         draggingPiece.y = p.y - draggingPiece.dy;
         redraw();
         return;
       }
-
-      if(!drawing) return;
+      if (!drawing) return;
       strokes[strokes.length-1].push(p);
       redraw();
     }
-
     function up(){
-      if (drawing) addEvent("stroke_end", { points: strokes[strokes.length-1]?.length || 0 });
+      if (drawing) addEvent("stroke_end", {points:strokes[strokes.length-1]?.length||0});
       drawing = false;
-      if (draggingPiece) {
-        addEvent("piece_drag_end", { type: draggingPiece.type, x: draggingPiece.x, y: draggingPiece.y });
+      if (draggingPiece){
+        addEvent("piece_drag_end", {type:draggingPiece.type,x:draggingPiece.x,y:draggingPiece.y});
         draggingPiece.dragging = false;
       }
       draggingPiece = null;
@@ -919,16 +802,17 @@
     canvas.addEventListener("pointercancel", up);
 
     // ============================
-    // EMMA speak
+    // EMMA UI
     // ============================
+    const emmaBox = document.getElementById("emmaBox");
+    const speakBtn = document.getElementById("btnSpeak");
     function setEmma(text, speak=true){
       lastEmmaText = text;
       emmaBox.textContent = text;
       if (speak) emmaSpeak(text);
     }
-
     function emmaSpeak(text){
-      try {
+      try{
         if (!("speechSynthesis" in window)) return;
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
@@ -936,97 +820,18 @@
         u.rate = 1.0;
         u.pitch = 1.05;
         window.speechSynthesis.speak(u);
-      } catch (e) {}
+      } catch {}
     }
-
-    let lastEmmaText = "Ciao! Scegli un bimbo e disegna qualcosa 🙂";
-
-    // ============================
-    // MIC (fallback WebSpeech)
-    // ============================
-    const micBtn = document.getElementById("btnMic");
-    const micStopBtn = document.getElementById("btnMicStop");
-    const micStatus = document.getElementById("micStatus");
-    const speakBtn = document.getElementById("btnSpeak");
     speakBtn.onclick = () => emmaSpeak(lastEmmaText);
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let rec = null;
-
-    function refreshMicLanguage(){
-      if (rec) {
-        try { rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT"; } catch {}
-      }
-      micStatus.textContent = "Microfono: non avviato.";
-    }
-
-    if (SpeechRecognition) {
-      rec = new SpeechRecognition();
-      rec.lang = "it-IT";
-      rec.interimResults = true;
-      rec.continuous = false;
-
-      rec.onstart = () => {
-        micStatus.textContent = "Microfono: sto ascoltando…";
-        micBtn.classList.add("on");
-        micStopBtn.disabled = false;
-        micBtn.disabled = true;
-        addEvent("mic_start", { lang: (activeChild && activeChild.lang) ? activeChild.lang : "it-IT" });
-      };
-
-      rec.onend = () => {
-        micStatus.textContent = "Microfono: fermo.";
-        micBtn.classList.remove("on");
-        micStopBtn.disabled = true;
-        micBtn.disabled = false;
-        addEvent("mic_end", {});
-      };
-
-      rec.onerror = (e) => {
-        micStatus.textContent = "Microfono: errore (" + (e.error || "unknown") + ").";
-        addEvent("mic_error", { error: e.error || "unknown" });
-      };
-
-      rec.onresult = (event) => {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        childUtterance = (transcript || "").trim();
-        if (childUtterance.length > 0) {
-          addEvent("mic_transcript", { text: childUtterance, lang: (activeChild && activeChild.lang) ? activeChild.lang : "it-IT" });
-          setEmma(localized("heard_ok"), false);
-        }
-      };
-
-      micBtn.onclick = () => {
-        if (!activeChild) { openChildModal(); return; }
-        setEmma(localized("speak_hint"), true);
-        try {
-          rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
-          rec.start();
-        } catch (e) {}
-      };
-      micStopBtn.onclick = () => { try { rec.stop(); } catch (e) {} };
-    } else {
-      micBtn.disabled = true;
-      micStopBtn.disabled = true;
-      micStatus.textContent = "Microfono: non supportato in questo browser. Prova Chrome/Edge.";
-    }
-
-    let childUtterance = "";
-
     // ============================
-    // BUTTONS
+    // Buttons
     // ============================
     document.getElementById("btnDraw").onclick = () => setMode("draw");
 
     document.getElementById("btnClear").onclick = () => {
       if (!activeChild) { openChildModal(); return; }
-      strokes = [];
-      pieces = [];
-      tries = 0;
-      childUtterance = "";
+      strokes = []; pieces = []; tries = 0; childUtterance = "";
       addEvent("board_clear", {});
       setEmma(localized("reset_ok"), true);
       redraw();
@@ -1057,20 +862,13 @@
       redraw();
     };
 
-    // ============================
-    // EMMA "Try" (MVP)
-    // ============================
     document.getElementById("btnTry").onclick = async () => {
       if (!activeChild) { openChildModal(); return; }
       tries++;
       activeChild.stats.attempts = (activeChild.stats.attempts || 0) + 1;
       saveChild(activeChild);
 
-      addEvent("try", {
-        tries,
-        strokes: strokes.length,
-        pieces: pieces.map(p => ({ type: p.type, x: p.x, y: p.y }))
-      });
+      addEvent("try", { tries, strokes: strokes.length, pieces: pieces.map(p => ({type:p.type,x:p.x,y:p.y})) });
 
       if (strokes.length === 0 && pieces.length === 0) {
         setEmma(localized("start_first"), true);
@@ -1102,7 +900,6 @@
         let frame = 0;
         function tick(){
           redraw();
-
           ctx.save();
           ctx.globalAlpha = 0.9;
           ctx.fillStyle = "rgba(255,255,255,0.75)";
@@ -1115,7 +912,6 @@
           ctx.save();
           const shake = mode === "fall" ? Math.sin(frame/3)*4 : Math.sin(frame/7)*1;
           ctx.translate(shake, 0);
-
           ctx.strokeStyle = mode === "fall" ? "#ef4444" : "#10b981";
           ctx.lineWidth = 6;
           ctx.beginPath();
@@ -1140,7 +936,75 @@
     }
 
     // ============================
-    // EXPORT + WIPE BUTTONS
+    // MIC (fallback WebSpeech)
+    // ============================
+    const micBtn = document.getElementById("btnMic");
+    const micStopBtn = document.getElementById("btnMicStop");
+    const micStatus = document.getElementById("micStatus");
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null;
+
+    function refreshMicLanguage(){
+      if (rec) {
+        try { rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT"; } catch {}
+      }
+      micStatus.textContent = "Microfono: non avviato.";
+    }
+
+    if (SpeechRecognition) {
+      rec = new SpeechRecognition();
+      rec.lang = "it-IT";
+      rec.interimResults = true;
+      rec.continuous = false;
+
+      rec.onstart = () => {
+        micStatus.textContent = "Microfono: sto ascoltando…";
+        micBtn.classList.add("on");
+        micStopBtn.disabled = false;
+        micBtn.disabled = true;
+        addEvent("mic_start", { lang: (activeChild && activeChild.lang) ? activeChild.lang : "it-IT" });
+      };
+      rec.onend = () => {
+        micStatus.textContent = "Microfono: fermo.";
+        micBtn.classList.remove("on");
+        micStopBtn.disabled = true;
+        micBtn.disabled = false;
+        addEvent("mic_end", {});
+      };
+      rec.onerror = (e) => {
+        micStatus.textContent = "Microfono: errore (" + (e.error || "unknown") + ").";
+        addEvent("mic_error", { error: e.error || "unknown" });
+      };
+      rec.onresult = (event) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        childUtterance = (transcript || "").trim();
+        if (childUtterance.length > 0) {
+          addEvent("mic_transcript", { text: childUtterance, lang: (activeChild && activeChild.lang) ? activeChild.lang : "it-IT" });
+          setEmma(localized("heard_ok"), false);
+        }
+      };
+
+      micBtn.onclick = () => {
+        if (!activeChild) { openChildModal(); return; }
+        setEmma(localized("speak_hint"), true);
+        try {
+          rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
+          rec.start();
+        } catch {}
+      };
+      micStopBtn.onclick = () => { try { rec.stop(); } catch {} };
+    } else {
+      micBtn.disabled = true;
+      micStopBtn.disabled = true;
+      micStatus.textContent = "Microfono: non supportato in questo browser. Prova Chrome/Edge.";
+    }
+
+    // ============================
+    // EXPORT + WIPE
     // ============================
     const exportModalBackdrop = document.getElementById("exportModalBackdrop");
     const btnExport = document.getElementById("btnExport");
@@ -1164,33 +1028,39 @@
     exportModalBackdrop.addEventListener("click", (e) => {
       if (e.target === exportModalBackdrop) btnCloseExportModal.onclick();
     });
-
     chkConsent.onchange = () => { btnDoExport.disabled = !chkConsent.checked; };
 
     btnDoExport.onclick = () => {
-      try{
-        if (!activeChild) return;
-        const includeTranscripts = chkIncludeTranscripts.checked;
-        const snapshot = JSON.parse(JSON.stringify(activeChild));
-        if (!includeTranscripts) {
-          snapshot.events = (snapshot.events || []).map(ev => {
-            if (ev.type === "mic_transcript") return { t: ev.t, type: ev.type, payload:{ note:"removed" } };
-            return ev;
-          });
-        }
-        const exportObj = {
-          exported_at: nowISO(),
-          app: { name:"EMMA Kids", phase:"Fase 1", storage: HAS_LS ? "localStorage" : "memory-fallback", version:"1.1" },
-          child: snapshot
-        };
-        const fnameSafe = (activeChild.child_id || "bimbo").replace(/[^\w\s-]/g,"").trim().replace(/\s+/g,"_");
-        downloadText(`EMMAKids_${fnameSafe}_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(exportObj,null,2));
-        addEvent("export", { includeTranscripts });
-        btnCloseExportModal.onclick();
-        setEmma(localized("export_done"), true);
-      } catch(e){
-        showError("Errore export: " + (e?.message || String(e)));
+      if (!activeChild) return;
+      const includeTranscripts = chkIncludeTranscripts.checked;
+      const snapshot = JSON.parse(JSON.stringify(activeChild));
+      if (!includeTranscripts) {
+        snapshot.events = (snapshot.events || []).map(ev => {
+          if (ev.type === "mic_transcript") return { t: ev.t, type: ev.type, payload:{ note:"removed" } };
+          return ev;
+        });
       }
+      const exportObj = {
+        exported_at: nowISO(),
+        app: { name:"EMMA Kids", phase:"Fase 1", storage: HAS_LS ? "localStorage" : "memory-fallback", version:"1.2" },
+        child: snapshot
+      };
+      const fnameSafe = (activeChild.child_id || "bimbo").replace(/[^\w\s-]/g,"").trim().replace(/\s+/g,"_");
+      downloadText(`EMMAKids_${fnameSafe}_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(exportObj,null,2));
+      addEvent("export", { includeTranscripts });
+      btnCloseExportModal.onclick();
+      setEmma(localized("export_done"), true);
+    };
+
+    document.getElementById("btnWipe").onclick = () => {
+      const ok = confirm("Eliminare TUTTI i dati EMMA Kids da questo dispositivo? (Profili, progressi, eventi)");
+      if (!ok) return;
+      clearAllData();
+      strokes = []; pieces = []; tries = 0; childUtterance = "";
+      refreshHeaderPills();
+      redraw();
+      setEmma("Dati eliminati. Ora crea un bimbo 🙂", true);
+      openChildModal();
     };
 
     // ============================
@@ -1199,6 +1069,7 @@
     function boot(){
       resize();
       updatePills();
+
       const id = getActiveChildId();
       if (id) activeChild = loadChild(id);
 
@@ -1206,15 +1077,16 @@
       refreshMicLanguage();
 
       if (!activeChild) {
-        setEmma("Ciao! Prima scegli un bimbo 🙂", false);
+        setEmma("Ciao! Premi “Scheda bimbo” 🙂", false);
         openChildModal();
       } else {
         setEmma(localized("hi_ready"), false);
       }
+
       redraw();
     }
 
-    boot();
+    try { boot(); } catch(e){ showError("Boot error: " + (e?.message || String(e))); }
   </script>
 </body>
 </html>
