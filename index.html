@@ -31,7 +31,6 @@
     .muted{color:#6b7280}
     .divider{height:1px;background:#e5e7eb;margin:10px 0}
 
-    /* Error banner */
     .errBanner{
       display:none;
       background:#fff1f2;
@@ -44,7 +43,6 @@
       white-space:pre-wrap;
     }
 
-    /* Modal */
     .modalBackdrop{
       position:fixed;inset:0;background:rgba(17,24,39,0.55);
       display:none;align-items:center;justify-content:center;padding:16px;z-index:50
@@ -78,15 +76,12 @@
 
   <main>
     <div class="row">
-      <!-- BOARD -->
       <div class="card">
         <div class="toolbar">
           <button class="primary" id="btnDraw">✍️ Disegna</button>
           <button id="btnClear" class="danger">🧽 Cancella</button>
           <button id="btnTry">▶ Prova con EMMA</button>
-
           <span style="width:10px;"></span>
-
           <button id="addBlock">+ Blocco</button>
           <button id="addBall">+ Palla</button>
           <button id="addArrow">+ Freccia</button>
@@ -108,7 +103,6 @@
         </p>
       </div>
 
-      <!-- EMMA -->
       <div class="card">
         <div class="toolbar" style="justify-content:space-between;align-items:center">
           <b>EMMA</b>
@@ -192,7 +186,7 @@
             </div>
 
             <div class="hint" style="margin-top:10px;">
-              Se un browser blocca lo storage, EMMA userà una memoria interna (non crash).
+              Se lo storage è corrotto, EMMA lo ripara (non crash).
             </div>
           </div>
 
@@ -268,7 +262,7 @@
     });
 
     // ============================
-    // SAFE STORAGE (prevents crashes)
+    // SAFE STORAGE
     // ============================
     const memStore = new Map();
     function storageAvailable(){
@@ -280,31 +274,18 @@
       } catch { return false; }
     }
     const HAS_LS = storageAvailable();
-
     const Storage = {
       getItem(key){
-        try{
-          if (HAS_LS) return localStorage.getItem(key);
-          return memStore.get(key) ?? null;
-        } catch{
-          return memStore.get(key) ?? null;
-        }
+        try{ return HAS_LS ? localStorage.getItem(key) : (memStore.get(key) ?? null); }
+        catch{ return memStore.get(key) ?? null; }
       },
       setItem(key, value){
-        try{
-          if (HAS_LS) localStorage.setItem(key, value);
-          else memStore.set(key, value);
-        } catch{
-          memStore.set(key, value);
-        }
+        try{ HAS_LS ? localStorage.setItem(key, value) : memStore.set(key, value); }
+        catch{ memStore.set(key, value); }
       },
       removeItem(key){
-        try{
-          if (HAS_LS) localStorage.removeItem(key);
-          memStore.delete(key);
-        } catch{
-          memStore.delete(key);
-        }
+        try{ if (HAS_LS) localStorage.removeItem(key); memStore.delete(key); }
+        catch{ memStore.delete(key); }
       }
     };
 
@@ -317,16 +298,13 @@
       const blob = new Blob([text], {type:"application/json"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     }
 
     // ============================
-    // STORAGE KEYS
+    // KEYS
     // ============================
     const LS_ACTIVE = "emmaKids.activeChildId";
     const LS_CHILDREN = "emmaKids.childrenIndex";
@@ -348,25 +326,26 @@
         display_name: id,
         lang: "it-IT",
         age_band: "3-5",
-        tone: "calmo",
-        challenge_level: 2,
-        stats: { sessions: 0, attempts: 0, frustration: 0 },
-        rosetta: { concepts: {} },
-        recent: [],
+        stats: { sessions: 0, attempts: 0 },
         events: []
       };
     }
 
+    // ✅ FIX: ALWAYS RETURN ARRAY (never null)
     function getChildrenIndex(){
-      return safeJsonParse(Storage.getItem(LS_CHILDREN), []);
+      const raw = Storage.getItem(LS_CHILDREN);
+      const parsed = safeJsonParse(raw, []);
+      return Array.isArray(parsed) ? parsed : [];
     }
     function setChildrenIndex(arr){
-      Storage.setItem(LS_CHILDREN, JSON.stringify(arr));
+      Storage.setItem(LS_CHILDREN, JSON.stringify(Array.isArray(arr) ? arr : []));
     }
+
     function loadChild(id){
       const raw = Storage.getItem(LS_CHILD_PREFIX + id);
       if (!raw) return null;
-      return safeJsonParse(raw, null);
+      const parsed = safeJsonParse(raw, null);
+      return (parsed && typeof parsed === "object") ? parsed : null;
     }
     function saveChild(child){
       Storage.setItem(LS_CHILD_PREFIX + child.child_id, JSON.stringify(child));
@@ -376,9 +355,7 @@
         setChildrenIndex(idx);
       }
     }
-    function getActiveChildId(){
-      return Storage.getItem(LS_ACTIVE) || "";
-    }
+    function getActiveChildId(){ return Storage.getItem(LS_ACTIVE) || ""; }
 
     let activeChild = null;
 
@@ -395,6 +372,13 @@
       refreshMicLanguage();
     }
 
+    function addEvent(type, payload = {}){
+      if (!activeChild) return;
+      activeChild.events.push({ t: nowISO(), type, payload });
+      if (activeChild.events.length > 600) activeChild.events.shift();
+      saveChild(activeChild);
+    }
+
     function clearAllData(){
       const idx = getChildrenIndex();
       for (const id of idx) Storage.removeItem(LS_CHILD_PREFIX + id);
@@ -403,15 +387,8 @@
       activeChild = null;
     }
 
-    function addEvent(type, payload = {}){
-      if (!activeChild) return;
-      activeChild.events.push({ t: nowISO(), type, payload });
-      if (activeChild.events.length > 600) activeChild.events.shift();
-      saveChild(activeChild);
-    }
-
     // ============================
-    // LOCALIZATION (THIS WAS MISSING BEFORE)
+    // LOCALIZATION
     // ============================
     function localized(key){
       const lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
@@ -432,7 +409,7 @@
     }
 
     // ============================
-    // HEADER PILLS
+    // HEADER
     // ============================
     const childPill = document.getElementById("childPill");
     const langPill = document.getElementById("langPill");
@@ -448,7 +425,7 @@
     }
 
     // ============================
-    // MODAL: CHILD
+    // MODAL CHILD
     // ============================
     const childModalBackdrop = document.getElementById("childModalBackdrop");
     const btnChooseChild = document.getElementById("btnChooseChild");
@@ -459,7 +436,6 @@
     const existingChildren = document.getElementById("existingChildren");
     const langSelect = document.getElementById("langSelect");
     const ageSelect = document.getElementById("ageSelect");
-
     let selectedAnimal = ANIMALS[0];
 
     function renderAnimals(){
@@ -474,7 +450,7 @@
     }
 
     function renderExistingChildren(){
-      const idx = getChildrenIndex();
+      const idx = getChildrenIndex(); // ✅ always array now
       if (idx.length === 0) {
         existingChildren.innerHTML = `<div class="hint">Nessun profilo ancora.</div>`;
         return;
@@ -483,27 +459,22 @@
       for (const id of idx.slice().reverse()) {
         const c = loadChild(id);
         const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.justifyContent = "space-between";
-        row.style.alignItems = "center";
-        row.style.gap = "10px";
-        row.style.padding = "8px 6px";
-        row.style.borderBottom = "1px solid #e5e7eb";
+        row.style.display="flex";
+        row.style.justifyContent="space-between";
+        row.style.alignItems="center";
+        row.style.gap="10px";
+        row.style.padding="8px 6px";
+        row.style.borderBottom="1px solid #e5e7eb";
 
         const left = document.createElement("div");
         left.innerHTML = `<b>${id}</b><div class="hint">Lingua: ${(c && c.lang) ? c.lang : "it-IT"} · Sessioni: ${(c && c.stats && c.stats.sessions) ? c.stats.sessions : 0} · Tentativi: ${(c && c.stats && c.stats.attempts) ? c.stats.attempts : 0}</div>`;
 
         const right = document.createElement("button");
-        right.className = "small";
-        right.textContent = "Usa";
-        right.onclick = () => {
-          setActiveChild(id);
-          closeChildModal();
-          setEmma(localized("hi_ready"), true);
-        };
+        right.className="small";
+        right.textContent="Usa";
+        right.onclick = () => { setActiveChild(id); closeChildModal(); setEmma(localized("hi_ready"), true); };
 
-        row.appendChild(left);
-        row.appendChild(right);
+        row.appendChild(left); row.appendChild(right);
         existingChildren.appendChild(row);
       }
       const last = existingChildren.lastChild;
@@ -511,7 +482,7 @@
     }
 
     function openChildModal(){
-      childModalBackdrop.style.display = "flex";
+      childModalBackdrop.style.display="flex";
       childModalBackdrop.setAttribute("aria-hidden","false");
       renderAnimals();
       renderExistingChildren();
@@ -519,12 +490,8 @@
       if (activeChild) {
         const parts = activeChild.child_id.split(" ");
         const last = parts[parts.length-1];
-        if (ANIMALS.includes(last)) {
-          selectedAnimal = last;
-          childNameInput.value = parts.slice(0,-1).join(" ");
-        } else {
-          childNameInput.value = activeChild.display_name || "";
-        }
+        if (ANIMALS.includes(last)) { selectedAnimal = last; childNameInput.value = parts.slice(0,-1).join(" "); }
+        else { childNameInput.value = activeChild.display_name || ""; }
         langSelect.value = activeChild.lang || "it-IT";
         ageSelect.value = activeChild.age_band || "3-5";
       } else {
@@ -533,17 +500,14 @@
         ageSelect.value = "3-5";
       }
     }
-
     function closeChildModal(){
-      childModalBackdrop.style.display = "none";
+      childModalBackdrop.style.display="none";
       childModalBackdrop.setAttribute("aria-hidden","true");
     }
 
     btnChooseChild.onclick = openChildModal;
     btnCloseChildModal.onclick = closeChildModal;
-    childModalBackdrop.addEventListener("click", (e) => {
-      if (e.target === childModalBackdrop) closeChildModal();
-    });
+    childModalBackdrop.addEventListener("click", (e) => { if (e.target === childModalBackdrop) closeChildModal(); });
 
     btnCreateChild.onclick = () => {
       const name = (childNameInput.value || "").trim();
@@ -556,12 +520,12 @@
       saveChild(c);
       setActiveChild(id);
       closeChildModal();
-      addEvent("child_selected", { child_id: id, lang: c.lang, age_band: c.age_band });
+      addEvent("child_selected", { child_id:id, lang:c.lang, age_band:c.age_band });
       setEmma(localized("hi_ready"), true);
     };
 
     // ============================
-    // CANVAS
+    // CANVAS + HAND-DRAWN SHAPES
     // ============================
     const canvas = document.getElementById("c");
     const ctx = canvas.getContext("2d");
@@ -582,8 +546,8 @@
     let pieces = [];
     let draggingPiece = null;
     let tries = 0;
-    let childUtterance = "";
     let lastEmmaText = "Ciao! Premi “Scheda bimbo” 🙂";
+    let childUtterance = "";
 
     const modePill = document.getElementById("modePill");
     const piecesPill = document.getElementById("piecesPill");
@@ -597,13 +561,9 @@
     }
     function setMode(next){ mode = next; updatePills(); redraw(); }
 
-    // Hand-drawn shapes (imperfect, consistent)
     function hashStr(s){
       let h = 2166136261;
-      for (let i=0;i<s.length;i++){
-        h ^= s.charCodeAt(i);
-        h = Math.imul(h, 16777619);
-      }
+      for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
       return h >>> 0;
     }
     function mulberry32(seed){
@@ -715,7 +675,6 @@
         ctx.restore();
       }
     }
-
     function redraw(){
       const w = canvas.clientWidth, h = canvas.clientHeight;
       ctx.clearRect(0,0,w,h);
@@ -747,14 +706,12 @@
       }
       return null;
     }
-
     function pos(e){
       const r = canvas.getBoundingClientRect();
       const x = (e.clientX ?? e.touches?.[0]?.clientX) - r.left;
       const y = (e.clientY ?? e.touches?.[0]?.clientY) - r.top;
       return {x,y};
     }
-
     function down(e){
       const p = pos(e);
       const hit = hitTest(p.x,p.y);
@@ -795,7 +752,6 @@
       }
       draggingPiece = null;
     }
-
     canvas.addEventListener("pointerdown", down);
     canvas.addEventListener("pointermove", move);
     canvas.addEventListener("pointerup", up);
@@ -817,18 +773,15 @@
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
         u.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
-        u.rate = 1.0;
-        u.pitch = 1.05;
         window.speechSynthesis.speak(u);
       } catch {}
     }
     speakBtn.onclick = () => emmaSpeak(lastEmmaText);
 
     // ============================
-    // Buttons
+    // ACTION BUTTONS
     // ============================
     document.getElementById("btnDraw").onclick = () => setMode("draw");
-
     document.getElementById("btnClear").onclick = () => {
       if (!activeChild) { openChildModal(); return; }
       strokes = []; pieces = []; tries = 0; childUtterance = "";
@@ -840,26 +793,17 @@
     document.getElementById("addBlock").onclick = () => {
       if (!activeChild) { openChildModal(); return; }
       const obj = { id: Date.now()+"b", type:"block", x: 110, y: 120, w: 150, h: 95 };
-      pieces.push(obj);
-      addEvent("piece_add", { type:"block", x: obj.x, y: obj.y, w: obj.w, h: obj.h });
-      setEmma("Ok 🙂", true);
-      redraw();
+      pieces.push(obj); addEvent("piece_add", { type:"block" }); redraw();
     };
     document.getElementById("addBall").onclick = () => {
       if (!activeChild) { openChildModal(); return; }
       const obj = { id: Date.now()+"o", type:"ball", x: 220, y: 260, r: 42 };
-      pieces.push(obj);
-      addEvent("piece_add", { type:"ball", x: obj.x, y: obj.y, r: obj.r });
-      setEmma("Ok 🙂", true);
-      redraw();
+      pieces.push(obj); addEvent("piece_add", { type:"ball" }); redraw();
     };
     document.getElementById("addArrow").onclick = () => {
       if (!activeChild) { openChildModal(); return; }
       const obj = { id: Date.now()+"a", type:"arrow", x: 170, y: 90 };
-      pieces.push(obj);
-      addEvent("piece_add", { type:"arrow", x: obj.x, y: obj.y });
-      setEmma("Ok 🙂", true);
-      redraw();
+      pieces.push(obj); addEvent("piece_add", { type:"arrow" }); redraw();
     };
 
     document.getElementById("btnTry").onclick = async () => {
@@ -867,32 +811,18 @@
       tries++;
       activeChild.stats.attempts = (activeChild.stats.attempts || 0) + 1;
       saveChild(activeChild);
+      addEvent("try", { tries });
 
-      addEvent("try", { tries, strokes: strokes.length, pieces: pieces.map(p => ({type:p.type,x:p.x,y:p.y})) });
-
-      if (strokes.length === 0 && pieces.length === 0) {
-        setEmma(localized("start_first"), true);
-        return;
-      }
-
-      const blocks = pieces.filter(p => p.type === "block").length;
-      const balls  = pieces.filter(p => p.type === "ball").length;
-      const arrows = pieces.filter(p => p.type === "arrow").length;
+      if (strokes.length === 0 && pieces.length === 0) { setEmma(localized("start_first"), true); return; }
 
       if (tries === 1) {
         setEmma("Ok 🙂 Proviamo! (potrei sbagliare)", true);
         await demoOverlay("stand");
-        setEmma("Oops 😅 non era così. Cambiamo una cosa sola e riproviamo?", true);
+        setEmma("Oops 😅 Cambiamo una cosa sola e riproviamo?", true);
         return;
       }
-
-      let tip = "Cambiamo una cosa sola e vediamo l’effetto.";
-      if (blocks >= 2 && arrows > 0) tip = "Vedo blocchi e vento: forse cade. Proviamo una base più larga?";
-      if (balls > 0 && arrows > 0) tip = "Vedo una palla e una spinta: forse rotola. Proviamo a cambiare la freccia.";
-      if (arrows === 0 && blocks > 0) tip = "Hai costruito qualcosa! Vuoi aggiungere una freccia (vento) per vedere cosa succede?";
-
-      setEmma(tip, true);
-      await demoOverlay(arrows > 0 ? "fall" : "stand");
+      setEmma("Cambiamo una cosa sola e vediamo l’effetto 🙂", true);
+      await demoOverlay(pieces.some(p=>p.type==="arrow") ? "fall" : "stand");
     };
 
     function demoOverlay(mode){
@@ -914,17 +844,9 @@
           ctx.translate(shake, 0);
           ctx.strokeStyle = mode === "fall" ? "#ef4444" : "#10b981";
           ctx.lineWidth = 6;
-          ctx.beginPath();
-          ctx.moveTo(520, 70);
-          ctx.lineTo(640, 70);
-          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(520, 70); ctx.lineTo(640, 70); ctx.stroke();
           ctx.fillStyle = mode === "fall" ? "#ef4444" : "#10b981";
-          ctx.beginPath();
-          ctx.moveTo(640, 70);
-          ctx.lineTo(615, 55);
-          ctx.lineTo(615, 85);
-          ctx.closePath();
-          ctx.fill();
+          ctx.beginPath(); ctx.moveTo(640, 70); ctx.lineTo(615, 55); ctx.lineTo(615, 85); ctx.closePath(); ctx.fill();
           ctx.restore();
 
           frame++;
@@ -936,19 +858,16 @@
     }
 
     // ============================
-    // MIC (fallback WebSpeech)
+    // MIC (kept simple)
     // ============================
     const micBtn = document.getElementById("btnMic");
     const micStopBtn = document.getElementById("btnMicStop");
     const micStatus = document.getElementById("micStatus");
-
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let rec = null;
 
     function refreshMicLanguage(){
-      if (rec) {
-        try { rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT"; } catch {}
-      }
+      if (rec) { try { rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT"; } catch {} }
       micStatus.textContent = "Microfono: non avviato.";
     }
 
@@ -958,48 +877,26 @@
       rec.interimResults = true;
       rec.continuous = false;
 
-      rec.onstart = () => {
-        micStatus.textContent = "Microfono: sto ascoltando…";
-        micBtn.classList.add("on");
-        micStopBtn.disabled = false;
-        micBtn.disabled = true;
-        addEvent("mic_start", { lang: (activeChild && activeChild.lang) ? activeChild.lang : "it-IT" });
-      };
-      rec.onend = () => {
-        micStatus.textContent = "Microfono: fermo.";
-        micBtn.classList.remove("on");
-        micStopBtn.disabled = true;
-        micBtn.disabled = false;
-        addEvent("mic_end", {});
-      };
-      rec.onerror = (e) => {
-        micStatus.textContent = "Microfono: errore (" + (e.error || "unknown") + ").";
-        addEvent("mic_error", { error: e.error || "unknown" });
-      };
+      rec.onstart = () => { micStatus.textContent = "Microfono: sto ascoltando…"; micBtn.classList.add("on"); micStopBtn.disabled=false; micBtn.disabled=true; };
+      rec.onend = () => { micStatus.textContent = "Microfono: fermo."; micBtn.classList.remove("on"); micStopBtn.disabled=true; micBtn.disabled=false; };
+      rec.onerror = (e) => { micStatus.textContent = "Microfono: errore (" + (e.error || "unknown") + ")."; };
+
       rec.onresult = (event) => {
         let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
+        for (let i = event.resultIndex; i < event.results.length; i++) transcript += event.results[i][0].transcript;
         childUtterance = (transcript || "").trim();
-        if (childUtterance.length > 0) {
-          addEvent("mic_transcript", { text: childUtterance, lang: (activeChild && activeChild.lang) ? activeChild.lang : "it-IT" });
-          setEmma(localized("heard_ok"), false);
-        }
+        if (childUtterance) addEvent("mic_transcript", { text: childUtterance });
+        setEmma(localized("heard_ok"), false);
       };
 
       micBtn.onclick = () => {
         if (!activeChild) { openChildModal(); return; }
         setEmma(localized("speak_hint"), true);
-        try {
-          rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
-          rec.start();
-        } catch {}
+        try { rec.lang = activeChild.lang || "it-IT"; rec.start(); } catch {}
       };
       micStopBtn.onclick = () => { try { rec.stop(); } catch {} };
     } else {
-      micBtn.disabled = true;
-      micStopBtn.disabled = true;
+      micBtn.disabled = true; micStopBtn.disabled = true;
       micStatus.textContent = "Microfono: non supportato in questo browser. Prova Chrome/Edge.";
     }
 
@@ -1015,19 +912,11 @@
 
     btnExport.onclick = () => {
       if (!activeChild) { openChildModal(); return; }
-      chkConsent.checked = false;
-      chkIncludeTranscripts.checked = false;
-      btnDoExport.disabled = true;
+      chkConsent.checked = false; chkIncludeTranscripts.checked = false; btnDoExport.disabled = true;
       exportModalBackdrop.style.display = "flex";
-      exportModalBackdrop.setAttribute("aria-hidden","false");
     };
-    btnCloseExportModal.onclick = () => {
-      exportModalBackdrop.style.display = "none";
-      exportModalBackdrop.setAttribute("aria-hidden","true");
-    };
-    exportModalBackdrop.addEventListener("click", (e) => {
-      if (e.target === exportModalBackdrop) btnCloseExportModal.onclick();
-    });
+    btnCloseExportModal.onclick = () => { exportModalBackdrop.style.display = "none"; };
+    exportModalBackdrop.addEventListener("click", (e) => { if (e.target === exportModalBackdrop) btnCloseExportModal.onclick(); });
     chkConsent.onchange = () => { btnDoExport.disabled = !chkConsent.checked; };
 
     btnDoExport.onclick = () => {
@@ -1035,16 +924,9 @@
       const includeTranscripts = chkIncludeTranscripts.checked;
       const snapshot = JSON.parse(JSON.stringify(activeChild));
       if (!includeTranscripts) {
-        snapshot.events = (snapshot.events || []).map(ev => {
-          if (ev.type === "mic_transcript") return { t: ev.t, type: ev.type, payload:{ note:"removed" } };
-          return ev;
-        });
+        snapshot.events = (snapshot.events || []).map(ev => ev.type==="mic_transcript" ? ({t:ev.t,type:ev.type,payload:{note:"removed"}}) : ev);
       }
-      const exportObj = {
-        exported_at: nowISO(),
-        app: { name:"EMMA Kids", phase:"Fase 1", storage: HAS_LS ? "localStorage" : "memory-fallback", version:"1.2" },
-        child: snapshot
-      };
+      const exportObj = { exported_at: nowISO(), app:{name:"EMMA Kids", phase:"Fase 1", storage: HAS_LS ? "localStorage" : "memory-fallback", version:"1.3"}, child: snapshot };
       const fnameSafe = (activeChild.child_id || "bimbo").replace(/[^\w\s-]/g,"").trim().replace(/\s+/g,"_");
       downloadText(`EMMAKids_${fnameSafe}_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(exportObj,null,2));
       addEvent("export", { includeTranscripts });
@@ -1064,14 +946,22 @@
     };
 
     // ============================
-    // BOOT
+    // BOOT (also repairs corrupted stored values)
     // ============================
     function boot(){
       resize();
       updatePills();
 
-      const id = getActiveChildId();
-      if (id) activeChild = loadChild(id);
+      // repair: if childrenIndex is null or not array, rewrite as []
+      const idx = getChildrenIndex();
+      setChildrenIndex(idx);
+
+      const activeId = getActiveChildId();
+      if (activeId) {
+        const c = loadChild(activeId);
+        if (c) activeChild = c;
+        else Storage.removeItem(LS_ACTIVE); // repair broken active id
+      }
 
       refreshHeaderPills();
       refreshMicLanguage();
@@ -1082,7 +972,6 @@
       } else {
         setEmma(localized("hi_ready"), false);
       }
-
       redraw();
     }
 
