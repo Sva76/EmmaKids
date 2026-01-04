@@ -23,31 +23,22 @@
     .toolbar button.mic.on{background:#eef2ff;border-color:#818cf8}
     .toolbar button.small{padding:8px 10px;font-weight:700}
     canvas{width:100%;height:480px;border:1px solid #e5e7eb;border-radius:14px;background:white;touch-action:none}
-    .emmaBox{white-space:pre-wrap;background:#f9fafb}
+    .emmaBox{white-space:pre-wrap;background:#f9fafb;min-height:92px}
     small{color:#6b7280}
     .pill{display:inline-block;padding:4px 8px;border:1px solid #e5e7eb;border-radius:999px;background:white;font-size:12px;color:#374151}
     .kpi{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .topPills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .muted{color:#6b7280}
     .divider{height:1px;background:#e5e7eb;margin:10px 0}
-
     .errBanner{
-      display:none;
-      background:#fff1f2;
-      border:1px solid #fecaca;
-      color:#991b1b;
-      padding:10px 12px;
-      border-radius:12px;
-      margin:12px 16px 0 16px;
-      font-weight:800;
-      white-space:pre-wrap;
+      display:none;background:#fff1f2;border:1px solid #fecaca;color:#991b1b;
+      padding:10px 12px;border-radius:12px;margin:12px 16px 0 16px;font-weight:800;white-space:pre-wrap;
     }
-
     .modalBackdrop{
       position:fixed;inset:0;background:rgba(17,24,39,0.55);
       display:none;align-items:center;justify-content:center;padding:16px;z-index:50
     }
-    .modal{max-width:720px;width:100%;background:white;border-radius:18px;border:1px solid #e5e7eb;box-shadow:0 20px 60px rgba(0,0,0,0.25);overflow:hidden}
+    .modal{max-width:760px;width:100%;background:white;border-radius:18px;border:1px solid #e5e7eb;box-shadow:0 20px 60px rgba(0,0,0,0.25);overflow:hidden}
     .modalHeader{padding:14px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px}
     .modalBody{padding:14px 16px}
     .modalFooter{padding:14px 16px;border-top:1px solid #e5e7eb;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
@@ -57,6 +48,7 @@
     .animalBtn{border:1px solid #e5e7eb;border-radius:14px;padding:10px 12px;background:#fff;cursor:pointer;font-weight:800}
     .animalBtn.active{border-color:#111;background:#111;color:#fff}
     .hint{font-size:12px;color:#6b7280}
+    .profileRow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid #e5e7eb}
   </style>
 </head>
 <body>
@@ -64,27 +56,33 @@
 
   <header>
     <div>
-      <h1>EMMA Kids (MVP)</h1>
-      <small class="muted">Disegna + aggiungi pezzi. Profilo bimbo locale + export dati anonimi (manuale).</small>
+      <h1>EMMA Kids</h1>
+      <small class="muted">Disegna e racconta. EMMA risponde con voce naturale neurale.</small>
     </div>
+
     <div class="topPills">
-      <span class="pill" id="childPill">Bimbo: —</span>
       <span class="pill" id="langPill">Lingua: it-IT</span>
-      <button class="small" id="btnChooseChild">👤 Scheda bimbo</button>
+
+      <select id="childSelect" title="Cambia bimbo"></select>
+      <button class="small" id="btnNewChild">➕ Nuovo</button>
+      <button class="small" id="btnManageChild">👤 Gestisci</button>
     </div>
   </header>
 
   <main>
     <div class="row">
+      <!-- BOARD -->
       <div class="card">
         <div class="toolbar">
-          <button class="primary" id="btnDraw">✍️ Disegna</button>
-          <button id="btnClear" class="danger">🧽 Cancella</button>
-          <button id="btnTry">▶ Prova con EMMA</button>
+          <button class="primary" id="btnDraw">Disegna</button>
+          <button id="btnClear" class="danger">Cancella</button>
+          <button id="btnTry">Prova con EMMA</button>
+
           <span style="width:10px;"></span>
-          <button id="addBlock">+ Blocco</button>
-          <button id="addBall">+ Palla</button>
-          <button id="addArrow">+ Freccia</button>
+
+          <button id="addBlock">Blocco</button>
+          <button id="addBall">Palla</button>
+          <button id="addArrow">Freccia</button>
         </div>
 
         <div class="kpi">
@@ -99,26 +97,27 @@
         </div>
 
         <p style="margin-bottom:0;margin-top:10px;">
-          <small> Suggerimento: aggiungi una freccia come “vento” e una torre con blocchi. </small>
+          <small>Suggerimento: fai un disegno e spiega a EMMA cosa hai fatto.</small>
         </p>
       </div>
 
+      <!-- EMMA -->
       <div class="card">
         <div class="toolbar" style="justify-content:space-between;align-items:center">
           <b>EMMA</b>
-          <button id="btnSpeak" title="Ripeti a voce">🔊 Ripeti</button>
+          <button id="btnReplay" title="Riascolta">Riascolta</button>
         </div>
 
         <div class="toolbar" style="margin-top:10px;">
-          <button id="btnMic" class="mic">🎤 Ascolta</button>
-          <button id="btnMicStop" class="mic" disabled>⏹ Stop</button>
+          <button id="btnMic" class="mic">Ascolta</button>
+          <button id="btnMicStop" class="mic" disabled>Stop</button>
         </div>
 
         <p style="margin-top:10px;margin-bottom:8px;">
-          <small>Nota: EMMA non ripete mai le parole del bambino. Le usa solo “dietro le quinte”.</small>
+          <small>EMMA usa ciò che dici per capire, ma non ripete le parole storpiate.</small>
         </p>
 
-        <div class="card emmaBox" id="emmaBox">Ciao! Premi “Scheda bimbo” 🙂</div>
+        <div class="card emmaBox" id="emmaBox">Premi "Nuovo" per creare un bimbo.</div>
 
         <p style="margin-top:10px;margin-bottom:0;">
           <small id="micStatus">Microfono: non avviato.</small>
@@ -126,24 +125,18 @@
 
         <div class="divider"></div>
 
-        <b class="muted">Dati (Fase 1)</b>
-        <p class="hint" style="margin-top:6px;">
-          I dati restano su questo dispositivo. Puoi esportarli manualmente (anonimi) solo se lo vuoi.
-        </p>
+        <b class="muted">Dati (locale)</b>
+        <p class="hint" style="margin-top:6px;">Resta su questo dispositivo. Export manuale se vuoi.</p>
 
         <div class="toolbar">
-          <button id="btnExport">📤 Esporta dati</button>
-          <button id="btnWipe" class="danger">🧹 Elimina dati</button>
+          <button id="btnExport">Esporta</button>
+          <button id="btnWipe" class="danger">Elimina tutto</button>
         </div>
-
-        <p class="hint" style="margin:10px 0 0 0;">
-          Export = file JSON scaricato qui sul device. Nessun invio automatico.
-        </p>
       </div>
     </div>
   </main>
 
-  <!-- MODAL: Choose child -->
+  <!-- MODAL: CHILD -->
   <div class="modalBackdrop" id="childModalBackdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="childModalTitle">
       <div class="modalHeader">
@@ -155,7 +148,7 @@
         <div class="grid2">
           <div class="card" style="padding:12px;">
             <b>Nuovo / Aggiorna</b>
-            <p class="hint" style="margin-top:6px;">Nome + animale (nessun dato reale). I progressi restano sul dispositivo.</p>
+            <p class="hint" style="margin-top:6px;">Nome inventato + animale, poi scegli lingua.</p>
 
             <label class="hint">Nome bimbo</label>
             <input id="childNameInput" placeholder="Es: Leo" style="width:100%;margin-top:6px;" />
@@ -186,73 +179,52 @@
             </div>
 
             <div class="hint" style="margin-top:10px;">
-              Se lo storage è corrotto, EMMA lo ripara (non crash).
+              Suggerimento: premi "Ascolta" e spiega a EMMA cosa hai disegnato.
             </div>
           </div>
 
           <div class="card" style="padding:12px;">
             <b>Profili sul dispositivo</b>
-            <p class="hint" style="margin-top:6px;">Puoi riprendere un bimbo già creato.</p>
+            <p class="hint" style="margin-top:6px;">Puoi cambiare o eliminare un profilo.</p>
             <div id="existingChildren" class="card" style="padding:10px;background:#f9fafb;"></div>
           </div>
         </div>
       </div>
 
       <div class="modalFooter">
-        <button id="btnCreateChild" class="primary">✅ Usa questo bimbo</button>
+        <button id="btnCreateChild" class="primary">Usa questo bimbo</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Export consent -->
+  <!-- MODAL: EXPORT -->
   <div class="modalBackdrop" id="exportModalBackdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
       <div class="modalHeader">
-        <b id="exportModalTitle">Esporta dati (anonimi)</b>
+        <b id="exportModalTitle">Esporta dati</b>
         <button id="btnCloseExportModal" class="small">✖</button>
       </div>
       <div class="modalBody">
-        <p style="margin-top:0;">
-          Stai per scaricare un file <b>JSON</b> con dati <b>anonimi</b> salvati su questo dispositivo.
-        </p>
-        <ul style="margin-top:8px;">
-          <li>Include: bimbo (nome+animale), lingua, contatori, eventi (azioni).</li>
-          <li><b>Non</b> invia nulla a server.</li>
-          <li><b>Non</b> include audio.</li>
-        </ul>
-
-        <div class="card" style="padding:12px;background:#f9fafb;">
-          <b>Opzioni export</b>
-          <div style="margin-top:10px;">
-            <label style="display:flex;gap:10px;align-items:center;">
-              <input type="checkbox" id="chkIncludeTranscripts" />
-              <span>Includi trascrizioni (consigliato NO)</span>
-            </label>
-            <div class="hint" style="margin-top:6px;">Se vuoi massima privacy, lascia deselezionato.</div>
-          </div>
-        </div>
-
-        <div class="card" style="padding:12px;margin-top:10px;">
+        <p style="margin-top:0;">Scarichi un file JSON su questo dispositivo. Nessun invio a server.</p>
+        <div class="card" style="padding:12px;">
           <label style="display:flex;gap:10px;align-items:center;">
             <input type="checkbox" id="chkConsent" />
-            <span>Confermo di avere il consenso per esportare questi dati da questo dispositivo.</span>
+            <span>Confermo di avere il consenso.</span>
           </label>
         </div>
       </div>
       <div class="modalFooter">
-        <button id="btnDoExport" class="primary" disabled>📥 Scarica JSON</button>
+        <button id="btnDoExport" class="primary" disabled>Scarica JSON</button>
       </div>
     </div>
   </div>
 
   <script>
-    // ============================
-    // ERROR HANDLING
-    // ============================
+    // ---------------- ERROR BANNER
     const errBanner = document.getElementById("errBanner");
     function showError(msg){
       errBanner.style.display = "block";
-      errBanner.textContent = "⚠️ ERRORE:\n" + msg;
+      errBanner.textContent = "ERRORE:\n" + msg;
     }
     window.addEventListener("error", (e) => {
       showError((e?.message || "Errore sconosciuto") + (e?.filename ? ("\n" + e.filename + ":" + e.lineno) : ""));
@@ -261,174 +233,153 @@
       showError("Promise rejection: " + (e?.reason?.message || String(e?.reason || "unknown")));
     });
 
-    // ============================
-    // SAFE STORAGE
-    // ============================
+    // ---------------- SAFE STORAGE
     const memStore = new Map();
     function storageAvailable(){
-      try{
-        const k="__emma_test__";
-        localStorage.setItem(k,"1");
-        localStorage.removeItem(k);
-        return true;
-      } catch { return false; }
+      try { const k="__emma_test__"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return true; }
+      catch { return false; }
     }
     const HAS_LS = storageAvailable();
     const Storage = {
-      getItem(key){
-        try{ return HAS_LS ? localStorage.getItem(key) : (memStore.get(key) ?? null); }
-        catch{ return memStore.get(key) ?? null; }
-      },
-      setItem(key, value){
-        try{ HAS_LS ? localStorage.setItem(key, value) : memStore.set(key, value); }
-        catch{ memStore.set(key, value); }
-      },
-      removeItem(key){
-        try{ if (HAS_LS) localStorage.removeItem(key); memStore.delete(key); }
-        catch{ memStore.delete(key); }
-      }
+      getItem(key){ try{ return HAS_LS ? localStorage.getItem(key) : (memStore.get(key) ?? null); } catch { return memStore.get(key) ?? null; } },
+      setItem(key,val){ try{ HAS_LS ? localStorage.setItem(key,val) : memStore.set(key,val); } catch { memStore.set(key,val); } },
+      removeItem(key){ try{ if(HAS_LS) localStorage.removeItem(key); memStore.delete(key); } catch { memStore.delete(key); } }
     };
-
-    function safeJsonParse(s, fallback){
-      try { return JSON.parse(s); } catch { return fallback; }
-    }
+    function safeJsonParse(s, fb){ try{ return JSON.parse(s); } catch { return fb; } }
     function nowISO(){ return new Date().toISOString(); }
-
     function downloadText(filename, text){
       const blob = new Blob([text], {type:"application/json"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
+      a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     }
 
-    // ============================
-    // KEYS
-    // ============================
+    // ---------------- KEYS
     const LS_ACTIVE = "emmaKids.activeChildId";
     const LS_CHILDREN = "emmaKids.childrenIndex";
     const LS_CHILD_PREFIX = "emmaKids.child.";
 
-    // ============================
-    // CHILD PROFILE
-    // ============================
+    // ---------------- CHILD PROFILE
     const ANIMALS = ["🦊","🐢","🐘","🐱","🐶","🦁","🐼","🐸","🐰","🐵","🦉","🐬"];
-
     function childIdFrom(name, animal){
-      const n = (name || "").trim().replace(/\s+/g," ");
+      const n = (name||"").trim().replace(/\s+/g," ");
       return `${n} ${animal}`.trim();
     }
-
     function emptyChild(id){
-      return {
-        child_id: id,
-        display_name: id,
-        lang: "it-IT",
-        age_band: "3-5",
-        stats: { sessions: 0, attempts: 0 },
-        events: []
-      };
+      return { child_id:id, display_name:id, lang:"it-IT", age_band:"3-5", stats:{sessions:0, attempts:0}, events:[] };
     }
-
-    // ✅ FIX: ALWAYS RETURN ARRAY (never null)
     function getChildrenIndex(){
       const raw = Storage.getItem(LS_CHILDREN);
       const parsed = safeJsonParse(raw, []);
       return Array.isArray(parsed) ? parsed : [];
     }
     function setChildrenIndex(arr){
-      Storage.setItem(LS_CHILDREN, JSON.stringify(Array.isArray(arr) ? arr : []));
+      Storage.setItem(LS_CHILDREN, JSON.stringify(Array.isArray(arr)?arr:[]));
     }
-
     function loadChild(id){
       const raw = Storage.getItem(LS_CHILD_PREFIX + id);
-      if (!raw) return null;
+      if(!raw) return null;
       const parsed = safeJsonParse(raw, null);
       return (parsed && typeof parsed === "object") ? parsed : null;
     }
     function saveChild(child){
       Storage.setItem(LS_CHILD_PREFIX + child.child_id, JSON.stringify(child));
       const idx = getChildrenIndex();
-      if (!idx.includes(child.child_id)) {
-        idx.push(child.child_id);
-        setChildrenIndex(idx);
-      }
+      if(!idx.includes(child.child_id)){ idx.push(child.child_id); setChildrenIndex(idx); }
+    }
+    function deleteChild(id){
+      Storage.removeItem(LS_CHILD_PREFIX + id);
+      const idx = getChildrenIndex().filter(x => x !== id);
+      setChildrenIndex(idx);
+      const active = Storage.getItem(LS_ACTIVE) || "";
+      if(active === id) Storage.removeItem(LS_ACTIVE);
     }
     function getActiveChildId(){ return Storage.getItem(LS_ACTIVE) || ""; }
 
     let activeChild = null;
 
+    function addEvent(type, payload={}){
+      if(!activeChild) return;
+      activeChild.events.push({ t: nowISO(), type, payload });
+      if(activeChild.events.length > 600) activeChild.events.shift();
+      saveChild(activeChild);
+    }
+
     function setActiveChild(id){
       Storage.setItem(LS_ACTIVE, id);
       activeChild = loadChild(id);
-      if (!activeChild) {
-        activeChild = emptyChild(id);
-        saveChild(activeChild);
-      }
-      activeChild.stats.sessions = (activeChild.stats.sessions || 0) + 1;
+      if(!activeChild){ activeChild = emptyChild(id); saveChild(activeChild); }
+      activeChild.stats.sessions = (activeChild.stats.sessions||0) + 1;
       saveChild(activeChild);
-      refreshHeaderPills();
-      refreshMicLanguage();
-    }
-
-    function addEvent(type, payload = {}){
-      if (!activeChild) return;
-      activeChild.events.push({ t: nowISO(), type, payload });
-      if (activeChild.events.length > 600) activeChild.events.shift();
-      saveChild(activeChild);
+      refreshTopUI();
     }
 
     function clearAllData(){
-      const idx = getChildrenIndex();
-      for (const id of idx) Storage.removeItem(LS_CHILD_PREFIX + id);
+      for(const id of getChildrenIndex()) Storage.removeItem(LS_CHILD_PREFIX + id);
       Storage.removeItem(LS_CHILDREN);
       Storage.removeItem(LS_ACTIVE);
       activeChild = null;
     }
 
-    // ============================
-    // LOCALIZATION
-    // ============================
+    // ---------------- UI TOP
+    const langPill = document.getElementById("langPill");
+    const childSelect = document.getElementById("childSelect");
+    const btnNewChild = document.getElementById("btnNewChild");
+    const btnManageChild = document.getElementById("btnManageChild");
+
+    function refreshTopUI(){
+      const idx = getChildrenIndex();
+      childSelect.innerHTML = "";
+      if(idx.length === 0){
+        const opt = document.createElement("option");
+        opt.value=""; opt.textContent="Nessun bimbo";
+        childSelect.appendChild(opt);
+        langPill.textContent = "Lingua: it-IT";
+        return;
+      }
+      for(const id of idx){
+        const opt = document.createElement("option");
+        opt.value=id; opt.textContent=id;
+        childSelect.appendChild(opt);
+      }
+      if(activeChild){
+        childSelect.value = activeChild.child_id;
+        langPill.textContent = "Lingua: " + (activeChild.lang || "it-IT");
+        document.documentElement.lang = (activeChild.lang || "it-IT").split("-")[0];
+      }
+    }
+
+    childSelect.onchange = () => {
+      const id = childSelect.value;
+      if(!id) return;
+      setActiveChild(id);
+      setEmma(localized("hi_ready"), false);
+    };
+
+    btnNewChild.onclick = () => openChildModal(true);
+    btnManageChild.onclick = () => openChildModal(false);
+
+    // ---------------- LOCALIZATION (no emojis)
     function localized(key){
       const lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
       const L = lang.startsWith("it") ? "it"
               : lang.startsWith("en") ? "en"
               : lang.startsWith("es") ? "es"
               : lang.startsWith("fr") ? "fr"
-              : lang.startsWith("de") ? "de"
-              : "it";
+              : lang.startsWith("de") ? "de" : "it";
       const dict = {
-        it: { hi_ready:"Ciao! Disegna qualcosa 🙂 Poi premi “Prova con EMMA”.", export_done:"Fatto! Ho esportato un file JSON su questo dispositivo.", speak_hint:"Ok, dimmi cosa stai costruendo 🙂", heard_ok:"Ti ho ascoltato. Continuiamo 🙂", start_first:"Prima disegna o aggiungi un pezzo 🙂", reset_ok:"Ok, ripartiamo 🙂 Disegna o aggiungi un pezzo." },
-        en: { hi_ready:"Hi! Draw something 🙂 Then press “Try with EMMA”.", export_done:"Done! I saved a JSON file on this device.", speak_hint:"Okay, tell me what you're building 🙂", heard_ok:"I listened. Let's continue 🙂", start_first:"First draw something or add a piece 🙂", reset_ok:"Alright, let's restart 🙂 Draw or add a piece." },
-        es: { hi_ready:"¡Hola! Dibuja algo 🙂 Luego pulsa “Probar con EMMA”.", export_done:"¡Hecho! Guardé un archivo JSON en este dispositivo.", speak_hint:"Vale, dime qué estás construyendo 🙂", heard_ok:"Te escuché. Sigamos 🙂", start_first:"Primero dibuja algo o añade una pieza 🙂", reset_ok:"Vale, empezamos de nuevo 🙂 Dibuja o añade una pieza." },
-        fr: { hi_ready:"Salut ! Dessine quelque chose 🙂 Puis clique “Essayer avec EMMA”.", export_done:"Terminé ! J’ai enregistré un fichier JSON sur cet appareil.", speak_hint:"Ok, dis-moi ce que tu construis 🙂", heard_ok:"Je t’ai écouté. On continue 🙂", start_first:"D’abord, dessine ou ajoute une pièce 🙂", reset_ok:"D’accord, on recommence 🙂 Dessine ou ajoute une pièce." },
-        de: { hi_ready:"Hallo! Zeichne etwas 🙂 Dann klicke “Mit EMMA testen”.", export_done:"Fertig! Ich habe eine JSON-Datei auf diesem Gerät gespeichert.", speak_hint:"Okay, sag mir, was du baust 🙂", heard_ok:"Ich habe zugehört. Weiter so 🙂", start_first:"Zuerst zeichnen oder ein Teil hinzufügen 🙂", reset_ok:"Okay, wir starten neu 🙂 Zeichne oder füge ein Teil hinzu." }
+        it:{ hi_ready:"Ciao. Disegna qualcosa e poi premi Prova con EMMA.", speak_hint:"Ok. Dimmi cosa stai costruendo.", heard_ok:"Ti ho ascoltato. Ora proviamo insieme.", start_first:"Prima disegna o aggiungi un pezzo.", reset_ok:"Va bene. Ripartiamo. Disegna o aggiungi un pezzo.", export_done:"Fatto. Ho esportato il file JSON su questo dispositivo." },
+        en:{ hi_ready:"Hello. Draw something, then press Try with EMMA.", speak_hint:"Okay. Tell me what you built.", heard_ok:"I listened. Now let's try together.", start_first:"First draw or add a piece.", reset_ok:"Okay. Let's restart. Draw or add a piece.", export_done:"Done. I saved a JSON file on this device." },
+        es:{ hi_ready:"Hola. Dibuja algo y luego pulsa Probar con EMMA.", speak_hint:"Vale. Dime qué construiste.", heard_ok:"Te escuché. Ahora probemos juntos.", start_first:"Primero dibuja o añade una pieza.", reset_ok:"Vale. Empezamos de nuevo. Dibuja o añade una pieza.", export_done:"Hecho. Guardé un archivo JSON en este dispositivo." },
+        fr:{ hi_ready:"Salut. Dessine quelque chose, puis clique Essayer avec EMMA.", speak_hint:"D'accord. Dis-moi ce que tu as construit.", heard_ok:"Je t'ai écouté. Maintenant, essayons ensemble.", start_first:"D'abord, dessine ou ajoute une pièce.", reset_ok:"D'accord. On recommence. Dessine ou ajoute une pièce.", export_done:"Terminé. J'ai enregistré un fichier JSON sur cet appareil." },
+        de:{ hi_ready:"Hallo. Zeichne etwas, dann klicke Mit EMMA testen.", speak_hint:"Okay. Sag mir, was du gebaut hast.", heard_ok:"Ich habe zugehört. Jetzt probieren wir zusammen.", start_first:"Zuerst zeichnen oder ein Teil hinzufügen.", reset_ok:"Okay. Wir starten neu. Zeichne oder füge ein Teil hinzu.", export_done:"Fertig. Ich habe eine JSON-Datei auf diesem Gerät gespeichert." }
       };
-      return (dict[L] && dict[L][key]) ? dict[L][key] : dict.it[key] || "";
+      return (dict[L] && dict[L][key]) ? dict[L][key] : dict.it[key];
     }
 
-    // ============================
-    // HEADER
-    // ============================
-    const childPill = document.getElementById("childPill");
-    const langPill = document.getElementById("langPill");
-    function refreshHeaderPills(){
-      if (!activeChild) {
-        childPill.textContent = "Bimbo: —";
-        langPill.textContent = "Lingua: it-IT";
-        return;
-      }
-      childPill.textContent = "Bimbo: " + activeChild.child_id;
-      langPill.textContent = "Lingua: " + activeChild.lang;
-      document.documentElement.lang = (activeChild.lang || "it-IT").split("-")[0];
-    }
-
-    // ============================
-    // MODAL CHILD
-    // ============================
+    // ---------------- MODAL CHILD
     const childModalBackdrop = document.getElementById("childModalBackdrop");
-    const btnChooseChild = document.getElementById("btnChooseChild");
     const btnCloseChildModal = document.getElementById("btnCloseChildModal");
     const btnCreateChild = document.getElementById("btnCreateChild");
     const childNameInput = document.getElementById("childNameInput");
@@ -440,192 +391,181 @@
 
     function renderAnimals(){
       animalsBox.innerHTML = "";
-      for (const a of ANIMALS) {
+      for(const a of ANIMALS){
         const b = document.createElement("button");
-        b.className = "animalBtn" + (a === selectedAnimal ? " active" : "");
+        b.className = "animalBtn" + (a===selectedAnimal?" active":"");
         b.textContent = a;
-        b.onclick = () => { selectedAnimal = a; renderAnimals(); };
+        b.onclick = () => { selectedAnimal=a; renderAnimals(); };
         animalsBox.appendChild(b);
       }
     }
 
     function renderExistingChildren(){
-      const idx = getChildrenIndex(); // ✅ always array now
-      if (idx.length === 0) {
+      const idx = getChildrenIndex();
+      if(idx.length===0){
         existingChildren.innerHTML = `<div class="hint">Nessun profilo ancora.</div>`;
         return;
       }
       existingChildren.innerHTML = "";
-      for (const id of idx.slice().reverse()) {
+      for(const id of idx.slice().reverse()){
         const c = loadChild(id);
         const row = document.createElement("div");
-        row.style.display="flex";
-        row.style.justifyContent="space-between";
-        row.style.alignItems="center";
-        row.style.gap="10px";
-        row.style.padding="8px 6px";
-        row.style.borderBottom="1px solid #e5e7eb";
+        row.className="profileRow";
 
         const left = document.createElement("div");
-        left.innerHTML = `<b>${id}</b><div class="hint">Lingua: ${(c && c.lang) ? c.lang : "it-IT"} · Sessioni: ${(c && c.stats && c.stats.sessions) ? c.stats.sessions : 0} · Tentativi: ${(c && c.stats && c.stats.attempts) ? c.stats.attempts : 0}</div>`;
+        left.innerHTML = `<b>${id}</b><div class="hint">Lingua: ${(c&&c.lang)||"it-IT"} · Tentativi: ${(c&&c.stats&&c.stats.attempts)||0}</div>`;
 
-        const right = document.createElement("button");
-        right.className="small";
-        right.textContent="Usa";
-        right.onclick = () => { setActiveChild(id); closeChildModal(); setEmma(localized("hi_ready"), true); };
+        const right = document.createElement("div");
+        right.style.display="flex"; right.style.gap="8px";
 
-        row.appendChild(left); row.appendChild(right);
+        const useBtn = document.createElement("button");
+        useBtn.className="small"; useBtn.textContent="Usa";
+        useBtn.onclick = () => { setActiveChild(id); closeChildModal(); setEmma(localized("hi_ready"), false); };
+
+        const delBtn = document.createElement("button");
+        delBtn.className="small danger"; delBtn.textContent="Elimina";
+        delBtn.onclick = () => {
+          const ok = confirm("Eliminare questo profilo? " + id);
+          if(!ok) return;
+          deleteChild(id);
+          activeChild = null;
+          const activeId = getActiveChildId();
+          if(activeId){
+            const cc = loadChild(activeId);
+            if(cc) activeChild = cc;
+          }
+          refreshTopUI();
+          renderExistingChildren();
+          if(!activeChild) setEmma("Premi Nuovo per creare un bimbo.", false);
+        };
+
+        right.appendChild(useBtn);
+        right.appendChild(delBtn);
+
+        row.appendChild(left);
+        row.appendChild(right);
         existingChildren.appendChild(row);
       }
       const last = existingChildren.lastChild;
-      if (last) last.style.borderBottom = "none";
+      if(last) last.style.borderBottom="none";
     }
 
-    function openChildModal(){
+    function openChildModal(forceEmpty){
       childModalBackdrop.style.display="flex";
-      childModalBackdrop.setAttribute("aria-hidden","false");
       renderAnimals();
       renderExistingChildren();
 
-      if (activeChild) {
+      if(forceEmpty || !activeChild){
+        childNameInput.value="";
+        selectedAnimal = ANIMALS[0];
+        langSelect.value="it-IT";
+        ageSelect.value="3-5";
+        renderAnimals();
+      } else {
         const parts = activeChild.child_id.split(" ");
         const last = parts[parts.length-1];
-        if (ANIMALS.includes(last)) { selectedAnimal = last; childNameInput.value = parts.slice(0,-1).join(" "); }
-        else { childNameInput.value = activeChild.display_name || ""; }
+        if(ANIMALS.includes(last)){ selectedAnimal=last; childNameInput.value = parts.slice(0,-1).join(" "); }
+        else childNameInput.value = activeChild.display_name || "";
         langSelect.value = activeChild.lang || "it-IT";
         ageSelect.value = activeChild.age_band || "3-5";
-      } else {
-        childNameInput.value = "";
-        langSelect.value = "it-IT";
-        ageSelect.value = "3-5";
+        renderAnimals();
       }
     }
-    function closeChildModal(){
-      childModalBackdrop.style.display="none";
-      childModalBackdrop.setAttribute("aria-hidden","true");
-    }
+    function closeChildModal(){ childModalBackdrop.style.display="none"; }
 
-    btnChooseChild.onclick = openChildModal;
     btnCloseChildModal.onclick = closeChildModal;
-    childModalBackdrop.addEventListener("click", (e) => { if (e.target === childModalBackdrop) closeChildModal(); });
+    childModalBackdrop.addEventListener("click",(e)=>{ if(e.target===childModalBackdrop) closeChildModal(); });
 
     btnCreateChild.onclick = () => {
-      const name = (childNameInput.value || "").trim();
-      if (!name) { alert("Inserisci un nome (anche inventato)."); return; }
+      const name = (childNameInput.value||"").trim();
+      if(!name){ alert("Inserisci un nome."); return; }
       const id = childIdFrom(name, selectedAnimal);
       let c = loadChild(id);
-      if (!c) c = emptyChild(id);
+      if(!c) c = emptyChild(id);
       c.lang = langSelect.value;
       c.age_band = ageSelect.value;
       saveChild(c);
       setActiveChild(id);
       closeChildModal();
-      addEvent("child_selected", { child_id:id, lang:c.lang, age_band:c.age_band });
-      setEmma(localized("hi_ready"), true);
+      addEvent("child_selected",{child_id:id,lang:c.lang,age_band:c.age_band});
+      setEmma(localized("hi_ready"), false);
+      refreshTopUI();
     };
 
-    // ============================
-    // CANVAS + HAND-DRAWN SHAPES
-    // ============================
+    // ---------------- CANVAS
     const canvas = document.getElementById("c");
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
 
-    function resize() {
+    function resize(){
       const rect = canvas.getBoundingClientRect();
-      canvas.width  = Math.floor(rect.width * dpr);
-      canvas.height = Math.floor(rect.height * dpr);
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height= Math.floor(rect.height* dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
       redraw();
     }
     window.addEventListener("resize", resize);
 
-    let mode = "draw";
-    let strokes = [];
-    let drawing = false;
-    let pieces = [];
-    let draggingPiece = null;
-    let tries = 0;
-    let lastEmmaText = "Ciao! Premi “Scheda bimbo” 🙂";
-    let childUtterance = "";
+    let mode="draw";
+    let strokes=[];
+    let drawing=false;
+    let pieces=[];
+    let draggingPiece=null;
+    let tries=0;
 
-    const modePill = document.getElementById("modePill");
-    const piecesPill = document.getElementById("piecesPill");
-    const strokesPill = document.getElementById("strokesPill");
-    const triesPill = document.getElementById("triesPill");
+    const modePill=document.getElementById("modePill");
+    const piecesPill=document.getElementById("piecesPill");
+    const strokesPill=document.getElementById("strokesPill");
+    const triesPill=document.getElementById("triesPill");
+
     function updatePills(){
-      modePill.textContent = "Modalità: " + (mode === "draw" ? "Disegna" : "Sposta");
-      piecesPill.textContent = "Pezzi: " + pieces.length;
-      strokesPill.textContent = "Tratti: " + strokes.length;
-      triesPill.textContent = "Tentativi: " + tries;
+      modePill.textContent="Modalità: " + (mode==="draw"?"Disegna":"Sposta");
+      piecesPill.textContent="Pezzi: " + pieces.length;
+      strokesPill.textContent="Tratti: " + strokes.length;
+      triesPill.textContent="Tentativi: " + tries;
     }
-    function setMode(next){ mode = next; updatePills(); redraw(); }
+    function setMode(next){ mode=next; updatePills(); redraw(); }
 
-    function hashStr(s){
-      let h = 2166136261;
-      for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-      return h >>> 0;
-    }
-    function mulberry32(seed){
-      let t = seed >>> 0;
-      return function(){
-        t += 0x6D2B79F5;
-        let x = t;
-        x = Math.imul(x ^ (x >>> 15), x | 1);
-        x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
-        return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
-      };
-    }
-    function jitter(rng, amp){ return (rng()*2 - 1) * amp; }
+    function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+    function mulberry32(seed){ let t=seed>>>0; return function(){ t+=0x6D2B79F5; let x=t; x=Math.imul(x^(x>>>15),x|1); x^=x+Math.imul(x^(x>>>7),x|61); return ((x^(x>>>14))>>>0)/4294967296; }; }
+    function jitter(rng,a){ return (rng()*2-1)*a; }
 
-    function handRect(ctx, x, y, w, h, seed){
-      const rng = mulberry32(seed);
-      const amp = Math.min(6, Math.max(2, Math.min(w,h) * 0.06));
-      const pts = [
-        {x:x + jitter(rng,amp),     y:y + jitter(rng,amp)},
-        {x:x+w + jitter(rng,amp),   y:y + jitter(rng,amp)},
-        {x:x+w + jitter(rng,amp),   y:y+h + jitter(rng,amp)},
-        {x:x + jitter(rng,amp),     y:y+h + jitter(rng,amp)}
-      ];
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      ctx.lineTo(pts[1].x, pts[1].y);
-      ctx.lineTo(pts[2].x, pts[2].y);
-      ctx.lineTo(pts[3].x, pts[3].y);
-      ctx.closePath();
+    function handRect(x,y,w,h,seed){
+      const rng=mulberry32(seed); const amp=Math.min(6,Math.max(2,Math.min(w,h)*0.06));
+      const p0={x:x+jitter(rng,amp),y:y+jitter(rng,amp)};
+      const p1={x:x+w+jitter(rng,amp),y:y+jitter(rng,amp)};
+      const p2={x:x+w+jitter(rng,amp),y:y+h+jitter(rng,amp)};
+      const p3={x:x+jitter(rng,amp),y:y+h+jitter(rng,amp)};
+      ctx.beginPath(); ctx.moveTo(p0.x,p0.y); ctx.lineTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.lineTo(p3.x,p3.y); ctx.closePath();
     }
-    function handCircle(ctx, cx, cy, r, seed){
-      const rng = mulberry32(seed);
-      const steps = 18;
-      const amp = Math.min(6, Math.max(2, r * 0.10));
+    function handCircle(cx,cy,r,seed){
+      const rng=mulberry32(seed); const steps=18; const amp=Math.min(6,Math.max(2,r*0.10));
       ctx.beginPath();
-      for (let i=0;i<=steps;i++){
-        const t = (i/steps) * Math.PI * 2;
-        const rr = r + jitter(rng, amp);
-        const px = cx + Math.cos(t)*rr + jitter(rng, amp*0.15);
-        const py = cy + Math.sin(t)*rr + jitter(rng, amp*0.15);
-        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      for(let i=0;i<=steps;i++){
+        const t=(i/steps)*Math.PI*2;
+        const rr=r+jitter(rng,amp);
+        const px=cx+Math.cos(t)*rr+jitter(rng,amp*0.15);
+        const py=cy+Math.sin(t)*rr+jitter(rng,amp*0.15);
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
       }
       ctx.closePath();
     }
-    function handArrow(ctx, x, y, len, seed){
-      const rng = mulberry32(seed);
-      const amp = 3.5;
-      const steps = 8;
+    function handArrow(x,y,len,seed){
+      const rng=mulberry32(seed); const amp=3.5; const steps=8;
       ctx.beginPath();
-      for (let i=0;i<=steps;i++){
-        const u = i/steps;
-        const px = x + len*u;
-        const py = y + Math.sin(u*Math.PI*2)*jitter(rng, amp) + jitter(rng, amp*0.3);
-        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      for(let i=0;i<=steps;i++){
+        const u=i/steps;
+        const px=x+len*u;
+        const py=y+Math.sin(u*Math.PI*2)*jitter(rng,amp)+jitter(rng,amp*0.3);
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
       }
       ctx.stroke();
-      const hx = x + len + jitter(rng, 1.5);
-      const hy = y + jitter(rng, 1.5);
+      const hx=x+len+jitter(rng,1.5);
+      const hy=y+jitter(rng,1.5);
       ctx.beginPath();
-      ctx.moveTo(hx, hy);
-      ctx.lineTo(hx - 20 + jitter(rng, 2), hy - 10 + jitter(rng, 2));
-      ctx.lineTo(hx - 20 + jitter(rng, 2), hy + 10 + jitter(rng, 2));
+      ctx.moveTo(hx,hy);
+      ctx.lineTo(hx-20+jitter(rng,2),hy-10+jitter(rng,2));
+      ctx.lineTo(hx-20+jitter(rng,2),hy+10+jitter(rng,2));
       ctx.closePath();
       ctx.fill();
     }
@@ -633,349 +573,351 @@
     function drawStrokes(){
       ctx.lineCap="round"; ctx.lineJoin="round";
       ctx.lineWidth=6; ctx.strokeStyle="#111827";
-      for (const s of strokes) {
-        if (s.length < 2) continue;
+      for(const s of strokes){
+        if(s.length<2) continue;
         ctx.beginPath();
-        ctx.moveTo(s[0].x, s[0].y);
-        for (let i=1;i<s.length;i++) ctx.lineTo(s[i].x, s[i].y);
+        ctx.moveTo(s[0].x,s[0].y);
+        for(let i=1;i<s.length;i++) ctx.lineTo(s[i].x,s[i].y);
         ctx.stroke();
       }
     }
     function drawPieces(){
-      for (const p of pieces) {
+      for(const p of pieces){
         ctx.save();
-        const seed = hashStr(String(p.id));
-        if (p.type === "block") {
-          ctx.globalAlpha = 0.85;
-          ctx.fillStyle = "#111827";
-          ctx.strokeStyle = "#111827";
-          ctx.lineWidth = 3;
-          handRect(ctx, p.x, p.y, p.w, p.h, seed);
-          ctx.fill();
-          ctx.globalAlpha = 0.65;
-          handRect(ctx, p.x+1, p.y+1, p.w-2, p.h-2, seed ^ 0xABC);
-          ctx.stroke();
-        } else if (p.type === "ball") {
-          ctx.globalAlpha = 0.85;
-          ctx.fillStyle = "#111827";
-          ctx.strokeStyle = "#111827";
-          ctx.lineWidth = 3;
-          handCircle(ctx, p.x, p.y, p.r, seed);
-          ctx.fill();
-          ctx.globalAlpha = 0.55;
-          handCircle(ctx, p.x+1, p.y+1, p.r-1, seed ^ 0xC0FFEE);
-          ctx.stroke();
-        } else if (p.type === "arrow") {
-          ctx.globalAlpha = 0.95;
-          ctx.strokeStyle = "#ef4444";
-          ctx.fillStyle = "#ef4444";
-          ctx.lineWidth = 6;
-          handArrow(ctx, p.x, p.y, 120, seed);
+        const seed=hashStr(String(p.id));
+        if(p.type==="block"){
+          ctx.globalAlpha=0.85; ctx.fillStyle="#111827"; ctx.strokeStyle="#111827"; ctx.lineWidth=3;
+          handRect(p.x,p.y,p.w,p.h,seed); ctx.fill();
+        } else if(p.type==="ball"){
+          ctx.globalAlpha=0.85; ctx.fillStyle="#111827"; ctx.strokeStyle="#111827"; ctx.lineWidth=3;
+          handCircle(p.x,p.y,p.r,seed); ctx.fill();
+        } else if(p.type==="arrow"){
+          ctx.globalAlpha=0.95; ctx.strokeStyle="#ef4444"; ctx.fillStyle="#ef4444"; ctx.lineWidth=6;
+          handArrow(p.x,p.y,120,seed);
         }
         ctx.restore();
       }
     }
+
     function redraw(){
-      const w = canvas.clientWidth, h = canvas.clientHeight;
+      const w=canvas.clientWidth,h=canvas.clientHeight;
       ctx.clearRect(0,0,w,h);
-      ctx.fillStyle="#fff";
-      ctx.fillRect(0,0,w,h);
-
-      ctx.save();
-      ctx.fillStyle="rgba(17,24,39,0.35)";
-      ctx.font="14px system-ui";
-      ctx.fillText(mode === "draw" ? "Disegna sul foglio" : "Trascina i pezzi", 14, 24);
+      ctx.fillStyle="#fff"; ctx.fillRect(0,0,w,h);
+      ctx.save(); ctx.fillStyle="rgba(17,24,39,0.35)"; ctx.font="14px system-ui";
+      ctx.fillText(mode==="draw"?"Disegna sul foglio":"Trascina i pezzi",14,24);
       ctx.restore();
-
-      drawStrokes();
-      drawPieces();
-      updatePills();
+      drawStrokes(); drawPieces(); updatePills();
     }
 
     function hitTest(x,y){
-      for (let i = pieces.length - 1; i >= 0; i--) {
-        const p = pieces[i];
-        if (p.type === "block") {
-          if (x >= p.x && x <= p.x + p.w && y >= p.y && y <= p.y + p.h) return p;
-        } else if (p.type === "ball") {
-          const dx = x - p.x, dy = y - p.y;
-          if (Math.sqrt(dx*dx + dy*dy) <= p.r) return p;
-        } else if (p.type === "arrow") {
-          if (x >= p.x && x <= p.x + 120 && y >= p.y - 22 && y <= p.y + 22) return p;
+      for(let i=pieces.length-1;i>=0;i--){
+        const p=pieces[i];
+        if(p.type==="block"){
+          if(x>=p.x && x<=p.x+p.w && y>=p.y && y<=p.y+p.h) return p;
+        } else if(p.type==="ball"){
+          const dx=x-p.x,dy=y-p.y;
+          if(Math.sqrt(dx*dx+dy*dy)<=p.r) return p;
+        } else if(p.type==="arrow"){
+          if(x>=p.x && x<=p.x+120 && y>=p.y-22 && y<=p.y+22) return p;
         }
       }
       return null;
     }
+
     function pos(e){
-      const r = canvas.getBoundingClientRect();
-      const x = (e.clientX ?? e.touches?.[0]?.clientX) - r.left;
-      const y = (e.clientY ?? e.touches?.[0]?.clientY) - r.top;
+      const r=canvas.getBoundingClientRect();
+      const x=(e.clientX ?? e.touches?.[0]?.clientX)-r.left;
+      const y=(e.clientY ?? e.touches?.[0]?.clientY)-r.top;
       return {x,y};
     }
+
     function down(e){
-      const p = pos(e);
-      const hit = hitTest(p.x,p.y);
-      if (hit){
-        draggingPiece = hit;
-        hit.dragging = true;
-        hit.dx = p.x - hit.x;
-        hit.dy = p.y - hit.y;
+      const p=pos(e);
+      const hit=hitTest(p.x,p.y);
+      if(hit){
+        draggingPiece=hit; hit.dragging=true;
+        hit.dx=p.x-hit.x; hit.dy=p.y-hit.y;
         setMode("move");
-        addEvent("piece_drag_start", {type:hit.type,x:hit.x,y:hit.y});
+        addEvent("piece_drag_start",{type:hit.type});
         redraw();
         return;
       }
       setMode("draw");
-      drawing = true;
+      drawing=true;
       strokes.push([p]);
-      addEvent("stroke_start", {x:p.x,y:p.y});
+      addEvent("stroke_start",{x:p.x,y:p.y});
       redraw();
     }
     function move(e){
-      const p = pos(e);
-      if (draggingPiece && draggingPiece.dragging){
-        draggingPiece.x = p.x - draggingPiece.dx;
-        draggingPiece.y = p.y - draggingPiece.dy;
+      const p=pos(e);
+      if(draggingPiece && draggingPiece.dragging){
+        draggingPiece.x=p.x-draggingPiece.dx;
+        draggingPiece.y=p.y-draggingPiece.dy;
         redraw();
         return;
       }
-      if (!drawing) return;
+      if(!drawing) return;
       strokes[strokes.length-1].push(p);
       redraw();
     }
     function up(){
-      if (drawing) addEvent("stroke_end", {points:strokes[strokes.length-1]?.length||0});
-      drawing = false;
-      if (draggingPiece){
-        addEvent("piece_drag_end", {type:draggingPiece.type,x:draggingPiece.x,y:draggingPiece.y});
-        draggingPiece.dragging = false;
+      if(drawing) addEvent("stroke_end",{points:strokes[strokes.length-1]?.length||0});
+      drawing=false;
+      if(draggingPiece){
+        addEvent("piece_drag_end",{type:draggingPiece.type});
+        draggingPiece.dragging=false;
       }
-      draggingPiece = null;
+      draggingPiece=null;
     }
-    canvas.addEventListener("pointerdown", down);
-    canvas.addEventListener("pointermove", move);
-    canvas.addEventListener("pointerup", up);
-    canvas.addEventListener("pointercancel", up);
 
-    // ============================
-    // EMMA UI
-    // ============================
-    const emmaBox = document.getElementById("emmaBox");
-    const speakBtn = document.getElementById("btnSpeak");
-    function setEmma(text, speak=true){
-      lastEmmaText = text;
-      emmaBox.textContent = text;
-      if (speak) emmaSpeak(text);
+    canvas.addEventListener("pointerdown",down);
+    canvas.addEventListener("pointermove",move);
+    canvas.addEventListener("pointerup",up);
+    canvas.addEventListener("pointercancel",up);
+
+    // ---------------- EMMA TEXT + NEURAL AUDIO
+    const emmaBox=document.getElementById("emmaBox");
+    const btnReplay=document.getElementById("btnReplay");
+    let lastAudioUrl=null;
+    let lastEmmaText="";
+
+    function setEmma(text){
+      lastEmmaText = String(text||"").trim();
+      emmaBox.textContent = lastEmmaText || "";
     }
-    function emmaSpeak(text){
+
+    async function playNeuralAudio(base64, mime){
       try{
-        if (!("speechSynthesis" in window)) return;
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT";
-        window.speechSynthesis.speak(u);
-      } catch {}
+        if(lastAudioUrl) URL.revokeObjectURL(lastAudioUrl);
+        const bin = atob(base64);
+        const bytes = new Uint8Array(bin.length);
+        for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+        const blob = new Blob([bytes], {type:mime || "audio/mpeg"});
+        lastAudioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(lastAudioUrl);
+        await audio.play();
+      } catch(e){
+        showError("Audio play error: " + (e?.message || String(e)));
+      }
     }
-    speakBtn.onclick = () => emmaSpeak(lastEmmaText);
 
-    // ============================
-    // ACTION BUTTONS
-    // ============================
+    btnReplay.onclick = async () => {
+      // if we have lastAudioUrl we can replay it, but simplest: do nothing if not available
+      if(!lastAudioUrl) return;
+      const audio = new Audio(lastAudioUrl);
+      try{ await audio.play(); } catch {}
+    };
+
+    // ---------------- SPEECH TO TEXT (browser)
+    const micBtn=document.getElementById("btnMic");
+    const micStopBtn=document.getElementById("btnMicStop");
+    const micStatus=document.getElementById("micStatus");
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec=null;
+    let childTranscript="";
+
+    if(SpeechRecognition){
+      rec = new SpeechRecognition();
+      rec.interimResults=true;
+      rec.continuous=false;
+
+      rec.onstart=()=>{ micStatus.textContent="Microfono: sto ascoltando..."; micBtn.classList.add("on"); micStopBtn.disabled=false; micBtn.disabled=true; };
+      rec.onend=()=>{ micStatus.textContent="Microfono: fermo."; micBtn.classList.remove("on"); micStopBtn.disabled=true; micBtn.disabled=false; };
+      rec.onerror=(e)=>{ micStatus.textContent="Microfono: errore ("+(e.error||"unknown")+")."; };
+
+      rec.onresult=(event)=>{
+        let t="";
+        for(let i=event.resultIndex;i<event.results.length;i++) t += event.results[i][0].transcript;
+        childTranscript = (t||"").trim();
+        if(childTranscript) addEvent("mic_transcript",{len: childTranscript.length});
+        setEmma(localized("heard_ok"));
+      };
+
+      micBtn.onclick=()=>{
+        if(!activeChild){ openChildModal(true); return; }
+        childTranscript="";
+        rec.lang = activeChild.lang || "it-IT";
+        setEmma(localized("speak_hint"));
+        try{ rec.start(); } catch {}
+      };
+      micStopBtn.onclick=()=>{ try{ rec.stop(); } catch {} };
+    } else {
+      micBtn.disabled=true; micStopBtn.disabled=true;
+      micStatus.textContent="Microfono: non supportato. Prova Chrome o Edge.";
+    }
+
+    // ---------------- DRAWING SUMMARY FOR AI
+    function computeDrawingSummary(){
+      // simple, effective summary for MVP
+      let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+      let totalPoints=0;
+
+      for(const s of strokes){
+        for(const p of s){
+          totalPoints++;
+          if(p.x<minX) minX=p.x;
+          if(p.y<minY) minY=p.y;
+          if(p.x>maxX) maxX=p.x;
+          if(p.y>maxY) maxY=p.y;
+        }
+      }
+      const bbox = (totalPoints>0) ? {minX, minY, maxX, maxY, w: maxX-minX, h: maxY-minY} : null;
+
+      const blocks = pieces.filter(p=>p.type==="block").length;
+      const balls  = pieces.filter(p=>p.type==="ball").length;
+      const arrows = pieces.filter(p=>p.type==="arrow").length;
+
+      return {
+        strokes_count: strokes.length,
+        total_points: totalPoints,
+        pieces: { blocks, balls, arrows },
+        bbox
+      };
+    }
+
+    function lastEventsForAI(){
+      if(!activeChild) return [];
+      return (activeChild.events || []).slice(-10);
+    }
+
+    // ---------------- AI CALL
+    async function callEmmaAI(){
+      if(!activeChild) { openChildModal(true); return; }
+
+      const drawing_summary = computeDrawingSummary();
+      const payload = {
+        lang: activeChild.lang || "it-IT",
+        age_band: activeChild.age_band || "3-5",
+        child_id: activeChild.child_id,
+        transcript: childTranscript || "",
+        drawing_summary,
+        last_events: lastEventsForAI()
+      };
+
+      setEmma("Sto pensando...");
+      addEvent("ai_call",{});
+
+      const resp = await fetch("/api/emma", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if(!resp.ok){
+        const txt = await resp.text();
+        showError("AI error: " + txt);
+        setEmma("C'è stato un problema con EMMA.");
+        return;
+      }
+
+      const data = await resp.json();
+      const text = (data && data.text) ? String(data.text) : "";
+      setEmma(text);
+      addEvent("ai_reply",{len:text.length});
+
+      if(data && data.audio && data.audio.base64){
+        await playNeuralAudio(data.audio.base64, data.audio.mime);
+      }
+    }
+
+    // ---------------- BUTTONS
     document.getElementById("btnDraw").onclick = () => setMode("draw");
+
     document.getElementById("btnClear").onclick = () => {
-      if (!activeChild) { openChildModal(); return; }
-      strokes = []; pieces = []; tries = 0; childUtterance = "";
-      addEvent("board_clear", {});
-      setEmma(localized("reset_ok"), true);
+      if(!activeChild){ openChildModal(true); return; }
+      strokes=[]; pieces=[]; tries=0; childTranscript="";
+      addEvent("board_clear",{});
+      setEmma(localized("reset_ok"));
       redraw();
     };
 
     document.getElementById("addBlock").onclick = () => {
-      if (!activeChild) { openChildModal(); return; }
-      const obj = { id: Date.now()+"b", type:"block", x: 110, y: 120, w: 150, h: 95 };
-      pieces.push(obj); addEvent("piece_add", { type:"block" }); redraw();
+      if(!activeChild){ openChildModal(true); return; }
+      pieces.push({ id:Date.now()+"b", type:"block", x:110, y:120, w:150, h:95 });
+      addEvent("piece_add",{type:"block"}); redraw();
     };
     document.getElementById("addBall").onclick = () => {
-      if (!activeChild) { openChildModal(); return; }
-      const obj = { id: Date.now()+"o", type:"ball", x: 220, y: 260, r: 42 };
-      pieces.push(obj); addEvent("piece_add", { type:"ball" }); redraw();
+      if(!activeChild){ openChildModal(true); return; }
+      pieces.push({ id:Date.now()+"o", type:"ball", x:220, y:260, r:42 });
+      addEvent("piece_add",{type:"ball"}); redraw();
     };
     document.getElementById("addArrow").onclick = () => {
-      if (!activeChild) { openChildModal(); return; }
-      const obj = { id: Date.now()+"a", type:"arrow", x: 170, y: 90 };
-      pieces.push(obj); addEvent("piece_add", { type:"arrow" }); redraw();
+      if(!activeChild){ openChildModal(true); return; }
+      pieces.push({ id:Date.now()+"a", type:"arrow", x:170, y:90 });
+      addEvent("piece_add",{type:"arrow"}); redraw();
     };
 
     document.getElementById("btnTry").onclick = async () => {
-      if (!activeChild) { openChildModal(); return; }
+      if(!activeChild){ openChildModal(true); return; }
       tries++;
-      activeChild.stats.attempts = (activeChild.stats.attempts || 0) + 1;
+      activeChild.stats.attempts = (activeChild.stats.attempts||0) + 1;
       saveChild(activeChild);
-      addEvent("try", { tries });
-
-      if (strokes.length === 0 && pieces.length === 0) { setEmma(localized("start_first"), true); return; }
-
-      if (tries === 1) {
-        setEmma("Ok 🙂 Proviamo! (potrei sbagliare)", true);
-        await demoOverlay("stand");
-        setEmma("Oops 😅 Cambiamo una cosa sola e riproviamo?", true);
-        return;
-      }
-      setEmma("Cambiamo una cosa sola e vediamo l’effetto 🙂", true);
-      await demoOverlay(pieces.some(p=>p.type==="arrow") ? "fall" : "stand");
+      updatePills();
+      addEvent("try",{tries});
+      // True AI response
+      await callEmmaAI();
     };
 
-    function demoOverlay(mode){
-      return new Promise((resolve) => {
-        let frame = 0;
-        function tick(){
-          redraw();
-          ctx.save();
-          ctx.globalAlpha = 0.9;
-          ctx.fillStyle = "rgba(255,255,255,0.75)";
-          ctx.fillRect(12, 12, 260, 44);
-          ctx.fillStyle = "#111827";
-          ctx.font = "16px system-ui";
-          ctx.fillText("Simulazione…", 22, 40);
-          ctx.restore();
+    // ---------------- EXPORT + WIPE
+    const exportModalBackdrop=document.getElementById("exportModalBackdrop");
+    const btnExport=document.getElementById("btnExport");
+    const btnCloseExportModal=document.getElementById("btnCloseExportModal");
+    const chkConsent=document.getElementById("chkConsent");
+    const btnDoExport=document.getElementById("btnDoExport");
 
-          ctx.save();
-          const shake = mode === "fall" ? Math.sin(frame/3)*4 : Math.sin(frame/7)*1;
-          ctx.translate(shake, 0);
-          ctx.strokeStyle = mode === "fall" ? "#ef4444" : "#10b981";
-          ctx.lineWidth = 6;
-          ctx.beginPath(); ctx.moveTo(520, 70); ctx.lineTo(640, 70); ctx.stroke();
-          ctx.fillStyle = mode === "fall" ? "#ef4444" : "#10b981";
-          ctx.beginPath(); ctx.moveTo(640, 70); ctx.lineTo(615, 55); ctx.lineTo(615, 85); ctx.closePath(); ctx.fill();
-          ctx.restore();
-
-          frame++;
-          if (frame < 40) requestAnimationFrame(tick);
-          else resolve();
-        }
-        requestAnimationFrame(tick);
-      });
-    }
-
-    // ============================
-    // MIC (kept simple)
-    // ============================
-    const micBtn = document.getElementById("btnMic");
-    const micStopBtn = document.getElementById("btnMicStop");
-    const micStatus = document.getElementById("micStatus");
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let rec = null;
-
-    function refreshMicLanguage(){
-      if (rec) { try { rec.lang = (activeChild && activeChild.lang) ? activeChild.lang : "it-IT"; } catch {} }
-      micStatus.textContent = "Microfono: non avviato.";
-    }
-
-    if (SpeechRecognition) {
-      rec = new SpeechRecognition();
-      rec.lang = "it-IT";
-      rec.interimResults = true;
-      rec.continuous = false;
-
-      rec.onstart = () => { micStatus.textContent = "Microfono: sto ascoltando…"; micBtn.classList.add("on"); micStopBtn.disabled=false; micBtn.disabled=true; };
-      rec.onend = () => { micStatus.textContent = "Microfono: fermo."; micBtn.classList.remove("on"); micStopBtn.disabled=true; micBtn.disabled=false; };
-      rec.onerror = (e) => { micStatus.textContent = "Microfono: errore (" + (e.error || "unknown") + ")."; };
-
-      rec.onresult = (event) => {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) transcript += event.results[i][0].transcript;
-        childUtterance = (transcript || "").trim();
-        if (childUtterance) addEvent("mic_transcript", { text: childUtterance });
-        setEmma(localized("heard_ok"), false);
-      };
-
-      micBtn.onclick = () => {
-        if (!activeChild) { openChildModal(); return; }
-        setEmma(localized("speak_hint"), true);
-        try { rec.lang = activeChild.lang || "it-IT"; rec.start(); } catch {}
-      };
-      micStopBtn.onclick = () => { try { rec.stop(); } catch {} };
-    } else {
-      micBtn.disabled = true; micStopBtn.disabled = true;
-      micStatus.textContent = "Microfono: non supportato in questo browser. Prova Chrome/Edge.";
-    }
-
-    // ============================
-    // EXPORT + WIPE
-    // ============================
-    const exportModalBackdrop = document.getElementById("exportModalBackdrop");
-    const btnExport = document.getElementById("btnExport");
-    const btnCloseExportModal = document.getElementById("btnCloseExportModal");
-    const chkConsent = document.getElementById("chkConsent");
-    const chkIncludeTranscripts = document.getElementById("chkIncludeTranscripts");
-    const btnDoExport = document.getElementById("btnDoExport");
-
-    btnExport.onclick = () => {
-      if (!activeChild) { openChildModal(); return; }
-      chkConsent.checked = false; chkIncludeTranscripts.checked = false; btnDoExport.disabled = true;
-      exportModalBackdrop.style.display = "flex";
+    btnExport.onclick=()=>{
+      if(!activeChild){ openChildModal(true); return; }
+      chkConsent.checked=false; btnDoExport.disabled=true;
+      exportModalBackdrop.style.display="flex";
     };
-    btnCloseExportModal.onclick = () => { exportModalBackdrop.style.display = "none"; };
-    exportModalBackdrop.addEventListener("click", (e) => { if (e.target === exportModalBackdrop) btnCloseExportModal.onclick(); });
-    chkConsent.onchange = () => { btnDoExport.disabled = !chkConsent.checked; };
+    btnCloseExportModal.onclick=()=>{ exportModalBackdrop.style.display="none"; };
+    exportModalBackdrop.addEventListener("click",(e)=>{ if(e.target===exportModalBackdrop) btnCloseExportModal.onclick(); });
+    chkConsent.onchange=()=>{ btnDoExport.disabled=!chkConsent.checked; };
 
-    btnDoExport.onclick = () => {
-      if (!activeChild) return;
-      const includeTranscripts = chkIncludeTranscripts.checked;
-      const snapshot = JSON.parse(JSON.stringify(activeChild));
-      if (!includeTranscripts) {
-        snapshot.events = (snapshot.events || []).map(ev => ev.type==="mic_transcript" ? ({t:ev.t,type:ev.type,payload:{note:"removed"}}) : ev);
-      }
-      const exportObj = { exported_at: nowISO(), app:{name:"EMMA Kids", phase:"Fase 1", storage: HAS_LS ? "localStorage" : "memory-fallback", version:"1.3"}, child: snapshot };
-      const fnameSafe = (activeChild.child_id || "bimbo").replace(/[^\w\s-]/g,"").trim().replace(/\s+/g,"_");
+    btnDoExport.onclick=()=>{
+      const snapshot = activeChild ? JSON.parse(JSON.stringify(activeChild)) : null;
+      const exportObj = { exported_at: nowISO(), app:{name:"EMMA Kids", phase:"Fase 2", storage: HAS_LS?"localStorage":"memory-fallback"}, child:snapshot };
+      const fnameSafe = (activeChild.child_id||"bimbo").replace(/[^\w\s-]/g,"").trim().replace(/\s+/g,"_");
       downloadText(`EMMAKids_${fnameSafe}_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(exportObj,null,2));
-      addEvent("export", { includeTranscripts });
       btnCloseExportModal.onclick();
-      setEmma(localized("export_done"), true);
+      setEmma(localized("export_done"));
     };
 
-    document.getElementById("btnWipe").onclick = () => {
-      const ok = confirm("Eliminare TUTTI i dati EMMA Kids da questo dispositivo? (Profili, progressi, eventi)");
-      if (!ok) return;
+    document.getElementById("btnWipe").onclick=()=>{
+      const ok=confirm("Eliminare TUTTI i dati su questo dispositivo?");
+      if(!ok) return;
       clearAllData();
-      strokes = []; pieces = []; tries = 0; childUtterance = "";
-      refreshHeaderPills();
-      redraw();
-      setEmma("Dati eliminati. Ora crea un bimbo 🙂", true);
-      openChildModal();
+      strokes=[]; pieces=[]; tries=0; childTranscript="";
+      refreshTopUI(); redraw();
+      setEmma("Premi Nuovo per creare un bimbo.");
+      openChildModal(true);
     };
 
-    // ============================
-    // BOOT (also repairs corrupted stored values)
-    // ============================
+    // ---------------- BOOT
     function boot(){
       resize();
-      updatePills();
-
-      // repair: if childrenIndex is null or not array, rewrite as []
       const idx = getChildrenIndex();
       setChildrenIndex(idx);
 
       const activeId = getActiveChildId();
-      if (activeId) {
+      if(activeId){
         const c = loadChild(activeId);
-        if (c) activeChild = c;
-        else Storage.removeItem(LS_ACTIVE); // repair broken active id
+        if(c) activeChild=c;
+        else Storage.removeItem(LS_ACTIVE);
       }
 
-      refreshHeaderPills();
-      refreshMicLanguage();
-
-      if (!activeChild) {
-        setEmma("Ciao! Premi “Scheda bimbo” 🙂", false);
-        openChildModal();
-      } else {
-        setEmma(localized("hi_ready"), false);
-      }
+      refreshTopUI();
       redraw();
+
+      if(!activeChild){
+        setEmma("Premi Nuovo per creare un bimbo.");
+        openChildModal(true);
+      } else {
+        setEmma(localized("hi_ready"));
+      }
     }
 
-    try { boot(); } catch(e){ showError("Boot error: " + (e?.message || String(e))); }
+    try{ boot(); } catch(e){ showError("Boot error: " + (e?.message || String(e))); }
   </script>
 </body>
 </html>
